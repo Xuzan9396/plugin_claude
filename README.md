@@ -7,7 +7,10 @@
 在 Claude Code 中执行：
 
 ```
-/plugin marketplace add /Users/admin/go/src/myai/planning_plugin_claude
+本地
+/plugin marketplace add /Users/admin/go/src/myai/plugin_claude
+云端
+/plugin marketplace add Xuzan9396/plugin_claude
 ```
 
 ### 2. 安装插件
