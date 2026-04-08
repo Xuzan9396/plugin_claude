@@ -7,7 +7,7 @@ argument-hint: ""
 
 # XZ Init - 初始化/更新项目计划目录
 
-在当前项目根目录下创建或更新 `.xz_planning/` 目录结构，为版本计划开发做好准备。
+在当前项目根目录下创建或更新 `.xz_planning/` 目录结构，为版本计划开发做好准备,如果第一次使用的时候，如果项目为空创建空目录README.md 和 PROJECT.md， 如果没有git管理, 帮我初始化 git, 如果有文件 .gitignore 排除里面的内容扫描
 
 **可重复执行：** 已初始化的项目再次执行时，只更新 README.md 和 PROJECT.md，不影响已有计划数据。
 
