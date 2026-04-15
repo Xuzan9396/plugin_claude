@@ -6,7 +6,7 @@
 
 ## 1. ai 开发目前遇到的一些问题
 
-### 问题：
+### 遇到问题：
 
 ### 1.AI 记不住全局, 重复对话多轮不是自己想要做的需求
 
@@ -16,7 +16,7 @@
 
 有的时候就是做着做着跑题了，你在问的时候 ai 即兴发挥，没有一个探讨计划的过程，少了约束，或者有的东西过度改动了
 
-### 3.需求没有一个ai 记录方式
+### 3.需求没有一个文件记录方式
 
 给 ai 问的问题或者需求，问完了丢失了，有的时候想参考或者继续在这个计划上改
 
@@ -74,7 +74,7 @@ plugin_claude/
         │   ├── xz-update-plan/     ← 修改计划
         │   ├── xz-review/          ← 代码审查
         │   ├── xz-test/            ← 生成测试指南
-        │   ├── xz-debug/           ← Bug 诊断
+        │   ├── xz-debug/           ← Bug 诊断xx
         │   ├── xz-status/          ← 查看进度
         │   ├── xz-done/            ← 归档版本
         │   ├── xz-ref/             ← 加载历史版本
@@ -351,6 +351,7 @@ Claude Code 使用 **marketplace** 来组织和分发插件。一个 marketplace
 # 1. 添加市场（本地路径或 GitHub）
 /plugin marketplace add /Users/admin/go/src/myai/plugin_claude
 /plugin marketplace add github用户名/plugin_claude
+/plugin marketplace add xuzan01111/plugin_claude
 
 # 2. 安装插件
 /plugin install xz-planning@xz-tools

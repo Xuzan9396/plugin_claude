@@ -279,6 +279,63 @@ date "+%Y-%m-%d %H:%M:%S"
 2. 任务标题 — 同上，用文字把改动流程讲清楚
 3. ...
 
+## 改动前后对比
+
+用直观的前后对比展示本次改动带来的整体变化。有数据的优先用举例数据说明。
+
+格式:
+
+改动前:
+（直接写原始文本，有数据贴数据，有代码贴代码片段，有请求贴请求响应）
+
+改动后:
+（同上，对应展示变化后的样子）
+
+示例 1 — 支持多语言切换
+
+改动前:
+界面只有中文，文本写死在组件里:
+<span>设置</span>
+<span>首页</span>
+
+改动后:
+Header 右侧多了语言下拉菜单（中/英/日），选完立刻切换，刷新不丢失:
+<span>{t('settings')}</span>  // 选中文 → "设置"，选英文 → "Settings"，选日文 → "設定"
+<span>{t('home')}</span>      // 选中文 → "首页"，选英文 → "Home"，选日文 → "ホーム"
+新增文件: src/config/i18n.ts, src/locales/zh-CN.json, en-US.json, ja-JP.json
+
+示例 2 — 修复登录接口返回 500
+
+改动前:
+POST /api/login  body: {"name": "test'or 1=1--", "password": "123"}
+响应: 500 Internal Server Error
+后端日志: sql: syntax error near "or 1=1--"
+原因: loginHandler 直接拼 SQL → WHERE name='test'or 1=1--'
+
+改动后:
+POST /api/login  body: {"name": "test'or 1=1--", "password": "123"}
+响应: 400 {"error": "用户名包含非法字符"}
+后端无报错日志，校验在 handler 层拦截，SQL 改为参数化查询 WHERE name = ?
+
+示例 3 — 首页加载优化
+
+改动前:
+首页请求: GET /api/dashboard
+响应时间: ~1200ms
+返回数据: 完整用户列表 + 统计 + 最近操作，共 ~850KB
+前端白屏等待约 1.5s
+
+改动后:
+首页拆成两个请求:
+GET /api/dashboard/summary   响应 ~120ms  返回统计摘要 ~8KB → 页面 0.3s 内出框架
+GET /api/dashboard/details   响应 ~900ms  返回详细列表 ~600KB → 异步加载，骨架屏过渡
+体感白屏时间从 1.5s 降到 0.3s
+
+生成规则:
+1. 基于实际代码 — 改动前从代码现状中提取，不能编造
+2. 数据优先 — 有请求贴请求，有返回值贴返回值，有耗时贴耗时，别只写文字描述
+3. 不重复 todolist — 对比关注"宏观效果变化"，todolist 关注"具体怎么做"
+
 ## 变更记录
 - YYYY-MM-DD HH:mm:ss 初始创建
 ````
