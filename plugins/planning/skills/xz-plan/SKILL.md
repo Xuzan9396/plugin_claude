@@ -222,7 +222,11 @@ xz-tools.py parse N
 
 **AskUserQuestion：**
 - question: "以上计划是否确认？"
-- options: `确认写入` / `修改意见`
+- options:
+  - label: "确认写入", description: "只写入 N-PLAN.md，等手动调 /xz-exec"
+  - label: "确认写入并直接执行", description: "写入后立即进入 /xz-exec N 流程"
+  - label: "修改意见", description: "按反馈调整草案后重出"
+- multiSelect: false
 
 选「修改意见」或 Other → 按反馈调整后重出草案。
 
@@ -237,7 +241,9 @@ xz-tools.py parse N
 xz-tools.py update-state
 ```
 
-### 7. 输出结果
+**若用户选「确认写入并直接执行」**：STATE.md 刷新完成后，直接按 `/xz-exec N` 的完整流程接着执行 todolist，跳过下面第 7 步（由 xz-exec 自己的流程接管后续询问）。
+
+### 7. 输出结果（仅「确认写入」路径）
 
 ```
 计划已写入:
@@ -246,7 +252,7 @@ xz-tools.py update-state
 
 **AskUserQuestion：**
 - question: "接下来要做什么？"
-- options: `/xz-exec N` / `/xz-update-plan N` 
+- options: `/xz-exec N` / `/xz-update-plan N`
 
 用户选定后执行对应 skill。
 

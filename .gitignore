@@ -4,6 +4,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 .xz_planning/
+
+# Claude Code 本地设置（不提交远程；.claude-plugin/ 是插件 manifest，保留）
+.claude/
+
 # C extensions
 *.so
 
