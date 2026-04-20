@@ -350,7 +350,7 @@ Claude Code 使用 **marketplace** 来组织和分发插件。一个 marketplace
 ```bash
 # 1. 添加市场（本地路径或 GitHub）
 /plugin marketplace add /Users/admin/go/src/myai/plugin_claude
-/plugin marketplace add github用户名/plugin_claude
+/plugin marketplace add Xuzan9396/plugin_claude
 /plugin marketplace add xuzan01111/plugin_claude
 
 # 2. 安装插件
