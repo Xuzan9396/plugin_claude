@@ -29,23 +29,25 @@ argument-hint: "[N] [讨论内容]"
 
 ## 路径说明
 
-**辅助脚本：**
-**脚本路径**：`$CLAUDE_PLUGIN_ROOT/bin/xz-tools.py`
+**辅助脚本：** `xz-tools.py`（插件启用时 `bin/` 自动加入 PATH，直接裸命令调用即可，无需 `python3` 前缀和绝对路径）。脚本在**当前工作目录**下操作 `.xz_planning/`。
 
-Claude Code 插件运行时会自动注入 `CLAUDE_PLUGIN_ROOT` 环境变量指向本插件根目录。后续所有调用使用 `python3 "$CLAUDE_PLUGIN_ROOT/bin/xz-tools.py" <命令>` 格式（必须带双引号，shell 会展开变量）。脚本在**当前工作目录**下操作 `.xz_planning/`。
+**本 skill 目录：** 本 skill 的本地文件（agents、scripts、visual-companion）需要通过绝对路径访问。**执行前第零步**：运行
 
-**本 skill 目录（`$CLAUDE_SKILL_DIR`）：**
-Claude Code 插件运行时会自动注入 `CLAUDE_SKILL_DIR` 环境变量，指向当前 skill 目录，后续所有相对路径基于此目录。
+```bash
+xz-tools.py skill-path xz-discuss
+```
+
+拿到返回的绝对路径（如 `/Users/xxx/.claude/plugins/cache/xz-tools/xz-planning/1.0.3/skills/xz-discuss`），**记为 `$SKILL_DIR`**，本文档后续所有出现的 `$SKILL_DIR` 字面量都替换成这个真实路径再使用（包括 Read 工具的文件路径和 Bash 命令）。
 
 **skill 目录结构：**
 
 | 文件 | 路径 | 说明 |
 |------|------|------|
-| PM 代理角色 | `$CLAUDE_SKILL_DIR/agents/pm-agent.md` | 启动子代理前必须先读取 |
-| Dev 代理角色 | `$CLAUDE_SKILL_DIR/agents/dev-agent.md` | 启动子代理前必须先读取 |
-| 可视化指南 | `$CLAUDE_SKILL_DIR/visual-companion.md` | 开启可视化前读取 |
-| 可视化启动脚本 | `$CLAUDE_SKILL_DIR/scripts/start-server.sh` | 启动浏览器可视化服务 |
-| 可视化停止脚本 | `$CLAUDE_SKILL_DIR/scripts/stop-server.sh` | 停止可视化服务 |
+| PM 代理角色 | `$SKILL_DIR/agents/pm-agent.md` | 启动子代理前必须先读取 |
+| Dev 代理角色 | `$SKILL_DIR/agents/dev-agent.md` | 启动子代理前必须先读取 |
+| 可视化指南 | `$SKILL_DIR/visual-companion.md` | 开启可视化前读取 |
+| 可视化启动脚本 | `$SKILL_DIR/scripts/start-server.sh` | 启动浏览器可视化服务 |
+| 可视化停止脚本 | `$SKILL_DIR/scripts/stop-server.sh` | 停止可视化服务 |
 
 **可视化**是**可选**的。在第四步中，如果讨论涉及架构图、流程图、模块关系等视觉内容，可以提供可视化辅助。用户同意后才启用。
 
@@ -110,7 +112,7 @@ digraph xz_discuss {
 检查 `.xz_planning/` 是否存在，不存在则停止提示 `/xz-init`。
 
 ```bash
-python3 "$CLAUDE_PLUGIN_ROOT/bin/xz-tools.py" parse $0
+xz-tools.py parse $0
 ```
 
 - **N-DISCUSS.md 已存在** → 提示已有讨论文档，询问覆盖还是追加
@@ -171,14 +173,14 @@ python3 "$CLAUDE_PLUGIN_ROOT/bin/xz-tools.py" parse $0
 
 #### 4.1 读取可视化指南
 
-读取 `$CLAUDE_SKILL_DIR/visual-companion.md`，了解完整的 CSS 类和交互规范。
+读取 `$SKILL_DIR/visual-companion.md`，了解完整的 CSS 类和交互规范。
 
 #### 4.2 启动可视化服务
 
-用 Bash 工具执行（Claude Code 插件运行时会展开 `$CLAUDE_SKILL_DIR` 环境变量）：
+用 Bash 工具执行（`$SKILL_DIR` 用第零步拿到的真实绝对路径替换）：
 
 ```bash
-bash "$CLAUDE_SKILL_DIR/scripts/start-server.sh" --project-dir "$(pwd)"
+bash "<SKILL_DIR 真实绝对路径>/scripts/start-server.sh" --project-dir "$(pwd)"
 ```
 
 服务启动后输出 JSON：
@@ -262,7 +264,7 @@ bash "$CLAUDE_SKILL_DIR/scripts/start-server.sh" --project-dir "$(pwd)"
 
 #### 子代理 A：PM 代理
 
-1. 读取 `$CLAUDE_SKILL_DIR/agents/pm-agent.md` 获取角色定义
+1. 读取 `$SKILL_DIR/agents/pm-agent.md` 获取角色定义
 2. 将以下内容注入提示词：
    - 角色定义（pm-agent.md 全文）
    - 需求描述: {用户输入 + 澄清结果}
@@ -271,7 +273,7 @@ bash "$CLAUDE_SKILL_DIR/scripts/start-server.sh" --project-dir "$(pwd)"
 
 #### 子代理 B：Dev 代理
 
-1. 读取 `$CLAUDE_SKILL_DIR/agents/dev-agent.md` 获取角色定义
+1. 读取 `$SKILL_DIR/agents/dev-agent.md` 获取角色定义
 2. 将以下内容注入提示词：
    - 角色定义（dev-agent.md 全文）
    - 需求描述: {用户输入 + 澄清结果}
@@ -430,7 +432,7 @@ date "+%Y-%m-%d %H:%M:%S"
 3. **刷新 STATE.md**：
 
 ```bash
-python3 "$CLAUDE_PLUGIN_ROOT/bin/xz-tools.py" update-state
+xz-tools.py update-state
 ```
 
 ### 第十一步：输出结果
@@ -438,7 +440,7 @@ python3 "$CLAUDE_PLUGIN_ROOT/bin/xz-tools.py" update-state
 **如果开启了可视化：** 停止可视化服务，释放端口。
 
 ```bash
-bash $CLAUDE_SKILL_DIR/scripts/stop-server.sh $SCREEN_DIR
+bash $SKILL_DIR/scripts/stop-server.sh $SCREEN_DIR
 ```
 
 `$SCREEN_DIR` 是第四步启动时保存的目录路径。如果未开启可视化则跳过此步。
@@ -466,7 +468,7 @@ bash $CLAUDE_SKILL_DIR/scripts/stop-server.sh $SCREEN_DIR
 ## 关键规则
 
 1. **双代理并行** — PM 代理和 Dev 代理用 Agent 工具并行执行，各自独立分析
-2. **角色外置** — 从 `$CLAUDE_SKILL_DIR/agents/` 读取角色定义，不内联
+2. **角色外置** — 从 `$SKILL_DIR/agents/` 读取角色定义，不内联
 3. **必须出方案** — 最终输出必须收敛为 A/B/C 方案对比，不能只列分析不给结论
 4. **方案要有实质差异** — 不同的功能范围或不同的技术路径，不是换个说法
 5. **推荐必须明确** — 标注推荐方案 + 一句话理由

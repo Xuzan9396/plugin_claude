@@ -442,6 +442,16 @@ def skill_dir(skill_name: str):
     print(json.dumps({"ok": True, "skill_dir": str(sd)}, ensure_ascii=False))
 
 
+def skill_path(skill_name: str):
+    """输出指定 skill 的目录绝对路径（纯文本，适合 shell 直接使用）。不存在则退出码非零。"""
+    root = _get_plugin_root()
+    sd = root / "skills" / skill_name
+    if not sd.exists():
+        sys.stderr.write(f"skill '{skill_name}' 不存在: {sd}\n")
+        sys.exit(1)
+    print(str(sd))
+
+
 def get_readme():
     """输出 README 模板内容到 stdout。"""
     root = _get_plugin_root()
@@ -456,7 +466,7 @@ def main():
     if len(sys.argv) < 2:
         print("用法: xz-tools.py <command> [args]")
         print("命令: init, status, parse <N>, complete <N>, delete <N>, update-state, remove-all,")
-        print("      plugin-root, skill-dir <name>, get-readme")
+        print("      plugin-root, skill-dir <name>, skill-path <name>, get-readme")
         sys.exit(1)
 
     cmd = sys.argv[1]
@@ -480,6 +490,8 @@ def main():
         plugin_root()
     elif cmd == "skill-dir" and len(sys.argv) >= 3:
         skill_dir(sys.argv[2])
+    elif cmd == "skill-path" and len(sys.argv) >= 3:
+        skill_path(sys.argv[2])
     elif cmd == "get-readme":
         get_readme()
     else:
