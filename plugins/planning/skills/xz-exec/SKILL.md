@@ -18,11 +18,9 @@ argument-hint: "[N]"
 
 ## 辅助脚本
 
-**脚本路径**：取本 skill 的 Base directory（prompt 开头 "Base directory for this skill:" 的值），向上两级目录，拼接 `bin/xz-tools.py`。
+**脚本路径**：`$CLAUDE_PLUGIN_ROOT/bin/xz-tools.py`
 
-示例：Base directory = `.../skills/xz-exec` → 脚本 = `.../bin/xz-tools.py`
-
-后续所有调用使用 `python3 <脚本绝对路径> <命令>` 格式。脚本在**当前工作目录**下操作 `.xz_planning/`。
+Claude Code 插件运行时会自动注入 `CLAUDE_PLUGIN_ROOT` 环境变量，指向本插件根目录。后续所有调用使用 `python3 "$CLAUDE_PLUGIN_ROOT/bin/xz-tools.py" <命令>` 格式（必须带双引号，shell 会展开变量）。脚本在**当前工作目录**下操作 `.xz_planning/`。
 
 ---
 
@@ -35,7 +33,7 @@ argument-hint: "[N]"
 ### 第二步：解析并读取计划
 
 ```bash
-python3 <脚本绝对路径> parse $ARGUMENTS
+python3 "$CLAUDE_PLUGIN_ROOT/bin/xz-tools.py" parse $ARGUMENTS
 ```
 
 - 从返回 JSON 中取 `phase.plan_file` 路径，读取 N-PLAN.md 完整内容
@@ -92,7 +90,7 @@ date "+%Y-%m-%d %H:%M:%S"
 3. 刷新 STATE.md：
 
 ```bash
-python3 <脚本绝对路径> update-state
+python3 "$CLAUDE_PLUGIN_ROOT/bin/xz-tools.py" update-state
 ```
 
 ### 第六步：循环或结束
@@ -135,5 +133,6 @@ python3 <脚本绝对路径> update-state
 6. **最后整理改动结果** — 全部完成后输出本次改动点汇总
 7. **只做计划内的事** — 严禁做 change details 之外的改动，即使觉得"顺手改了更好"也不行；发现计划有遗漏，停下来告知用户，由用户决定是否通过 `/xz-update-plan` 补充
 8. **遇阻停下问人** — change details 与实际文件不符、依赖缺失、指令含糊到无法确定改什么时，立即停止报告用户，禁止猜测或自行创造解法
-9. **语法必须通过** — 每条任务执行后做语法检查，不通过不标完成
-10. **中途接手先评估** — 有已完成条目时，先检查实际代码与 change details 的一致性，偏差大则报告用户等决定
+9. **模糊先查 PLAN** — change details 描述不够具体时，先回头读 `## 需求描述`（用户原话 + 我的理解）和 `## 用户资料与引用` 两个章节，大概率能消除歧义；仍不清楚再按规则 8 停下问人
+10. **语法必须通过** — 每条任务执行后做语法检查，不通过不标完成
+11. **中途接手先评估** — 有已完成条目时，先检查实际代码与 change details 的一致性，偏差大则报告用户等决定

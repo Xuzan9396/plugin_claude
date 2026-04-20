@@ -30,12 +30,12 @@
 
 ## 启动会话
 
-脚本位于 `$SKILL_DIR/scripts/`（即 SKILL.md 同级的 `scripts/` 目录）。
+脚本位于 `$CLAUDE_SKILL_DIR/scripts/`（即 SKILL.md 同级的 `scripts/` 目录）。
 
-`$SKILL_DIR` 即本 skill 的 Base directory（由 prompt 开头 "Base directory for this skill:" 提供）。
+`$CLAUDE_SKILL_DIR` 是 Claude Code 插件运行时自动注入的环境变量，指向当前 skill 目录。
 
 ```bash
-bash $SKILL_DIR/scripts/start-server.sh --project-dir "$(pwd)"
+bash "$CLAUDE_SKILL_DIR/scripts/start-server.sh" --project-dir "$(pwd)"
 
 # 返回: {"type":"server-started","port":52341,"url":"http://localhost:52341",
 #        "screen_dir":"<项目根目录>/.xz_planning/visual/<pid>-<timestamp>"}
@@ -186,12 +186,12 @@ bash $SKILL_DIR/scripts/start-server.sh --project-dir "$(pwd)"
 ## 清理
 
 ```bash
-bash $SKILL_DIR/scripts/stop-server.sh $SCREEN_DIR
+bash $CLAUDE_SKILL_DIR/scripts/stop-server.sh $SCREEN_DIR
 ```
 
 项目目录下的 `.xz_planning/visual/` 会保留可视化文件供后续查阅。仅 `/tmp` 临时会话会被自动删除。
 
 ## 参考
 
-- 框架模板（CSS 参考）：`$SKILL_DIR/scripts/frame-template.html`
-- 辅助脚本（客户端）：`$SKILL_DIR/scripts/helper.js`
+- 框架模板（CSS 参考）：`$CLAUDE_SKILL_DIR/scripts/frame-template.html`
+- 辅助脚本（客户端）：`$CLAUDE_SKILL_DIR/scripts/helper.js`

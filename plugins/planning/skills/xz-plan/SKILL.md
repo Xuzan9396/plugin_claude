@@ -22,10 +22,9 @@ argument-hint: "[N] [需求描述]"
 
 ## 辅助脚本
 
-**脚本路径**：取本 skill Base directory 向上两级目录拼接 `bin/xz-tools.py`。
-示例：Base = `.../skills/xz-plan` → 脚本 = `.../bin/xz-tools.py`
+**脚本路径**：`$CLAUDE_PLUGIN_ROOT/bin/xz-tools.py`
 
-后续调用格式：`python3 <脚本绝对路径> <命令>`。脚本在**当前工作目录**下操作 `.xz_planning/`。
+Claude Code 插件运行时会自动注入 `CLAUDE_PLUGIN_ROOT` 环境变量，指向本插件根目录。后续所有调用使用 `python3 "$CLAUDE_PLUGIN_ROOT/bin/xz-tools.py" <命令>` 格式（必须带双引号，shell 会展开变量）。脚本在**当前工作目录**下操作 `.xz_planning/`。
 
 ---
 
@@ -38,7 +37,7 @@ argument-hint: "[N] [需求描述]"
 ### 第二步：检查版本存在
 
 ```bash
-python3 <脚本绝对路径> parse N
+python3 "$CLAUDE_PLUGIN_ROOT/bin/xz-tools.py" parse N
 ```
 
 | 返回 | 操作 |
@@ -96,7 +95,7 @@ python3 <脚本绝对路径> parse N
 附对比总结表（维度：改动范围/开发量/性能/可维护性/扩展性）和推荐理由。
 
 **AskUserQuestion：**
-- question: "选择实现方案："
+- question: "选择实现方案：详细的说明描述"
 - options: 动态映射方案，label 用方案名，description 用核心思路
 - multiSelect: false
 
@@ -134,6 +133,8 @@ python3 <脚本绝对路径> parse N
 
 获取时间：`date "+%Y-%m-%d %H:%M:%S"`
 
+**需求描述规则：** `## 需求描述` 必须含两小节 —— 「用户原话」（原文粘贴，含补充信息按时间追加）+「我的理解（做啥）」（一段话复述目标）。用户贴过的代码/日志/链接/约束汇入 `## 用户资料与引用`，**原文保留，禁止总结重写**，无内容则整节删除。
+
 **change details 规则：**
 
 1. 修改文件标 `path:起始行-结束行`，括号内写 `(现: ...)` 摘要
@@ -153,7 +154,20 @@ python3 <脚本绝对路径> parse N
 > 状态: 待执行
 
 ## 需求描述
-原始需求。
+
+### 用户原话
+> 用户最初输入的原始需求，一字不改粘贴（含标点、语气）。后续讨论中补充的关键信息按时间顺序追加在此节。
+
+### 我的理解（做啥）
+一句话或一段话复述：这次到底要做什么、解决什么问题、期望效果是什么。用户后续若纠正，更新这段。
+
+## 用户资料与引用
+
+> 承载需求以外的背景资料，支持 todolist 独立执行时参考。无内容则删整节。
+
+- **引用代码 / 数据 / 日志**：用户贴的原文片段，用代码块包住**原文保留，禁止总结重写**
+- **外部链接**：API 文档、设计稿、规格说明等 URL
+- **业务背景 / 术语 / 约束**：专业术语、兼容要求、历史决策
 
 ## 技术方案
 选定方案及理由（或单方案思路）。
@@ -184,7 +198,7 @@ python3 <脚本绝对路径> parse N
 
 ## 总结
 
-共 N 条，涉及 X 文件（新建 Y，修改 Z），约 M 行。
+共 N 条，涉及 X 文件（新建 Y，修改 Z） 。
 1. 任务标题 — 做什么、涉及文件、关键函数、改成什么样
 2. ...
 
@@ -220,7 +234,7 @@ python3 <脚本绝对路径> parse N
 写入 `N-PLAN.md`，然后：
 
 ```bash
-python3 <脚本绝对路径> update-state
+python3 "$CLAUDE_PLUGIN_ROOT/bin/xz-tools.py" update-state
 ```
 
 ### 7. 输出结果
@@ -232,7 +246,7 @@ python3 <脚本绝对路径> update-state
 
 **AskUserQuestion：**
 - question: "接下来要做什么？"
-- options: `/xz-exec N` / `/xz-update-plan N` / `/xz-ref N`
+- options: `/xz-exec N` / `/xz-update-plan N` 
 
 用户选定后执行对应 skill。
 
@@ -249,3 +263,4 @@ python3 <脚本绝对路径> update-state
 7. **多子系统拆分** — 独立子系统各自一个版本
 8. **遵循现有模式，DRY/YAGNI** — 不为假想未来预留
 9. **版本已存在拒绝** — 导向 `/xz-update-plan N`
+10. **用户原话+资料原文保留** — 需求描述必须含原话和复述理解两段；用户贴的代码/日志/链接进 `## 用户资料与引用`，原文保留不得总结

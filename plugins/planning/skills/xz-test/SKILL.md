@@ -20,11 +20,9 @@ argument-hint: "[N]"
 
 ## 辅助脚本
 
-**脚本路径**：取本 skill 的 Base directory（prompt 开头 "Base directory for this skill:" 的值），向上两级目录，拼接 `bin/xz-tools.py`。
+**脚本路径**：`$CLAUDE_PLUGIN_ROOT/bin/xz-tools.py`
 
-示例：Base directory = `.../skills/xz-test` → 脚本 = `.../bin/xz-tools.py`
-
-后续所有调用使用 `python3 <脚本绝对路径> <命令>` 格式。脚本在**当前工作目录**下操作 `.xz_planning/`。
+Claude Code 插件运行时会自动注入 `CLAUDE_PLUGIN_ROOT` 环境变量，指向本插件根目录。后续所有调用使用 `python3 "$CLAUDE_PLUGIN_ROOT/bin/xz-tools.py" <命令>` 格式（必须带双引号，shell 会展开变量）。脚本在**当前工作目录**下操作 `.xz_planning/`。
 
 ---
 
@@ -33,7 +31,7 @@ argument-hint: "[N]"
 ### 第一步：解析计划
 
 ```bash
-python3 <脚本绝对路径> parse $ARGUMENTS
+python3 "$CLAUDE_PLUGIN_ROOT/bin/xz-tools.py" parse $ARGUMENTS
 ```
 
 如果版本不存在，提示用户先创建计划。用返回 JSON 中的 `phase.plan_file` 获取 PLAN 文件绝对路径，UAT 文件写在同级目录。
