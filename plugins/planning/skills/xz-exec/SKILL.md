@@ -107,6 +107,7 @@ xz-tools.py update-state
 - options:
   - label: "/xz-review N", description: "代码审查（可选）"
   - label: "/xz-test N", description: "生成测试指南（可选）"
+  - label: "/xz-update-plan N", description: "追加/更新计划（有新需求或遗漏项需要加条目）"
   - label: "/xz-done N", description: "归档版本"
 - multiSelect: false
 

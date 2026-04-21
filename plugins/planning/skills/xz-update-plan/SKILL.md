@@ -186,7 +186,8 @@ xz-tools.py parse $0
 - question: "以上变更是否确认？"
 - header: "确认变更"
 - options:
-  - label: "确认更新", description: "写入 N-PLAN.md 并刷新 STATE.md"
+  - label: "确认更新", description: "写入 N-PLAN.md 并刷新 STATE.md，等手动调 /xz-exec"
+  - label: "确认更新并直接执行", description: "写入后立即进入 /xz-exec N 流程"
   - label: "修改意见", description: "调整后重新输出变更草案"
 - multiSelect: false
 
@@ -213,7 +214,9 @@ date "+%Y-%m-%d %H:%M:%S"
 xz-tools.py update-state
 ```
 
-### 第十步：输出改动结果
+**若用户选「确认更新并直接执行」**：STATE.md 刷新完成后，直接按 `/xz-exec N` 的完整流程接着执行 todolist，跳过下面第十步（由 xz-exec 自己的流程接管后续询问）。
+
+### 第十步：输出改动结果（仅「确认更新」路径）
 
 整理并输出：
 - 修改了哪些条目

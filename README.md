@@ -379,6 +379,21 @@ claude --plugin-dir ./plugin-one --plugin-dir ./plugin-two
 /plugin marketplace remove xz-tools     # 删除市场
 ```
 
+### 5.4 本地改动后如何让插件生效
+
+本地源改动（SKILL.md / agents / bin 脚本）不会自动同步到 `~/.claude/plugins/cache/` 下的安装副本。改完源码需要重装：
+
+```bash
+/plugin uninstall xz-planning
+/plugin install xz-planning
+/reload-plugins
+```
+
+说明：
+- `uninstall` 清掉旧缓存；`install` 从市场（本地路径或 GitHub）重新拉取当前源；`reload-plugins` 应用变更
+- 若只改了 `plugin.json` 的 `version` 并推到远程市场，也可以用 `/plugin marketplace update xz-tools` + `/reload-plugins` 触发更新
+- 改完没生效前先怀疑是不是缓存还是旧版 —— `ls ~/.claude/plugins/cache/xz-tools/xz-planning/` 看版本号是否对得上
+
 ---
 
 ## 6. 总结
