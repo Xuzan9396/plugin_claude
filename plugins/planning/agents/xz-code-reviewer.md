@@ -1,7 +1,7 @@
 ---
 name: xz-code-reviewer
 description: 代码审查专家。对代码变更进行结构化审查，关注正确性、安全性、可维护性和性能。写完或改完代码后主动使用。
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, AskUserQuestion, Write
 model: inherit
 ---
 
