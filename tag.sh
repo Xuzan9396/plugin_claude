@@ -14,25 +14,36 @@ if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 
 version="${tag#v}"
-file=".claude-plugin/marketplace.json"
+marketplace=".claude-plugin/marketplace.json"
+plugin_json="plugins/planning/.claude-plugin/plugin.json"
 
-if [ ! -f "$file" ]; then
-  echo "未找到 $file，请在插件仓库根目录执行" >&2
-  exit 1
-fi
+for f in "$marketplace" "$plugin_json"; do
+  if [ ! -f "$f" ]; then
+    echo "未找到 $f，请在插件仓库根目录执行" >&2
+    exit 1
+  fi
+done
 
-python3 - "$file" "$version" <<'PYEOF'
+python3 - "$marketplace" "$plugin_json" "$version" <<'PYEOF'
 import json, sys
-path, version = sys.argv[1], sys.argv[2]
-with open(path) as f:
+marketplace, plugin_json, version = sys.argv[1], sys.argv[2], sys.argv[3]
+
+with open(marketplace) as f:
     data = json.load(f)
 data["plugins"][0]["version"] = version
-with open(path, "w") as f:
+with open(marketplace, "w") as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+    f.write("\n")
+
+with open(plugin_json) as f:
+    data = json.load(f)
+data["version"] = version
+with open(plugin_json, "w") as f:
     json.dump(data, f, indent=2, ensure_ascii=False)
     f.write("\n")
 PYEOF
 
-echo "[1/3] marketplace.json 已改为 $version"
+echo "[1/3] marketplace.json + plugin.json 已改为 $version"
 
 git add -A
 if git diff --cached --quiet; then
