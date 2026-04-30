@@ -63,7 +63,7 @@ disable-model-invocation: true
 2. 形成 2-3 个假设
 3. 为每个假设规划探针：哪个文件、哪一行、观察哪些变量
 4. **根据运行环境确定日志策略**：
-   - **CLI / 服务端 / 脚本** → 文件日志（`.claude-debug/debug.log`）
+   - **CLI / 服务端 / 脚本** → 文件日志（`.debug_log/debug.log`）
    - **浏览器 / 前端（Vue、React 等）** → `console.log` 探针（由用户粘贴控制台输出）
    - **混合环境（SSR、Electron）** → 服务端用文件日志，渲染进程用 console
 5. 输出探针计划表，然后**立即进入 Step 2**：
@@ -87,18 +87,25 @@ disable-model-invocation: true
 **文件日志模式（CLI / 服务端）：**
 
 ```bash
-mkdir -p .claude-debug
-: > .claude-debug/debug.log
-echo "run_count=0" > .claude-debug/state
+mkdir -p .debug_log
+: > .debug_log/debug.log
+echo "run_count=0" > .debug_log/state
+
+# 自动忽略：若 .gitignore 中尚未包含 .debug_log/，追加一条
+if [ -f .gitignore ]; then
+  grep -qxF '.debug_log/' .gitignore || echo '.debug_log/' >> .gitignore
+else
+  echo '.debug_log/' > .gitignore
+fi
 ```
 
 **写入 run 分隔符** —— 每次执行前写入一条运行头：
 
 ```bash
-RUN_NUM=$(($(grep -oE 'run_count=[0-9]+' .claude-debug/state | cut -d= -f2) + 1))
-echo "run_count=$RUN_NUM" > .claude-debug/state
-echo "" >> .claude-debug/debug.log
-echo "========== RUN #$RUN_NUM | $(date -Iseconds) ==========" >> .claude-debug/debug.log
+RUN_NUM=$(($(grep -oE 'run_count=[0-9]+' .debug_log/state | cut -d= -f2) + 1))
+echo "run_count=$RUN_NUM" > .debug_log/state
+echo "" >> .debug_log/debug.log
+echo "========== RUN #$RUN_NUM | $(date -Iseconds) ==========" >> .debug_log/debug.log
 ```
 
 确保多次运行在日志中有清晰分隔。
@@ -155,7 +162,7 @@ console.log(`[DEBUG PROBE 1] component-render | state=${JSON.stringify(state)} |
 
 ```javascript
 // 🔍 DEBUG PROBE [1] funcName-entry
-require('fs').appendFileSync('.claude-debug/debug.log', `[${new Date().toISOString()}] [js] file.js:42 | funcName-entry | var1=${JSON.stringify(var1)}, var2=${JSON.stringify(var2)}\n`);
+require('fs').appendFileSync('.debug_log/debug.log', `[${new Date().toISOString()}] [js] file.js:42 | funcName-entry | var1=${JSON.stringify(var1)}, var2=${JSON.stringify(var2)}\n`);
 // 🔍 DEBUG PROBE END [1]
 ```
 
@@ -163,7 +170,7 @@ require('fs').appendFileSync('.claude-debug/debug.log', `[${new Date().toISOStri
 
 ```python
 # 🔍 DEBUG PROBE [1] funcName-entry
-import datetime; open(".claude-debug/debug.log", "a").write(f"[{datetime.datetime.now().isoformat()}] [python] file.py:42 | funcName-entry | var1={var1}, var2={var2}\n")
+import datetime; open(".debug_log/debug.log", "a").write(f"[{datetime.datetime.now().isoformat()}] [python] file.py:42 | funcName-entry | var1={var1}, var2={var2}\n")
 # 🔍 DEBUG PROBE END [1]
 ```
 
@@ -171,7 +178,7 @@ import datetime; open(".claude-debug/debug.log", "a").write(f"[{datetime.datetim
 
 ```go
 // 🔍 DEBUG PROBE [1] funcName-entry
-if f, err := os.OpenFile(".claude-debug/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err == nil {
+if f, err := os.OpenFile(".debug_log/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err == nil {
     fmt.Fprintf(f, "[%s] [go] file.go:42 | funcName-entry | var=%v\n", time.Now().Format(time.RFC3339), variable)
     f.Close()
 }
@@ -182,7 +189,7 @@ if f, err := os.OpenFile(".claude-debug/debug.log", os.O_APPEND|os.O_CREATE|os.O
 
 ```swift
 // 🔍 DEBUG PROBE [1] funcName-entry
-if let fh = FileHandle(forWritingAtPath: ".claude-debug/debug.log") {
+if let fh = FileHandle(forWritingAtPath: ".debug_log/debug.log") {
     fh.seekToEndOfFile()
     fh.write("[\(ISO8601DateFormatter().string(from: Date()))] [swift] file.swift:42 | funcName-entry | val=\(variable)\n".data(using: .utf8)!)
     fh.closeFile()
@@ -194,7 +201,7 @@ if let fh = FileHandle(forWritingAtPath: ".claude-debug/debug.log") {
 
 ```kotlin
 // 🔍 DEBUG PROBE [1] funcName-entry
-java.io.File(".claude-debug/debug.log").appendText("[${java.time.Instant.now()}] [kotlin] file.kt:42 | funcName-entry | var=$variable\n")
+java.io.File(".debug_log/debug.log").appendText("[${java.time.Instant.now()}] [kotlin] file.kt:42 | funcName-entry | var=$variable\n")
 // 🔍 DEBUG PROBE END [1]
 ```
 
@@ -202,7 +209,7 @@ java.io.File(".claude-debug/debug.log").appendText("[${java.time.Instant.now()}]
 
 ```bash
 # 🔍 DEBUG PROBE [1] funcName-entry
-echo "[$(date -Iseconds)] [bash] script.sh:42 | funcName-entry | var=$variable" >> .claude-debug/debug.log
+echo "[$(date -Iseconds)] [bash] script.sh:42 | funcName-entry | var=$variable" >> .debug_log/debug.log
 # 🔍 DEBUG PROBE END [1]
 ```
 
@@ -213,9 +220,9 @@ echo "[$(date -Iseconds)] [bash] script.sh:42 | funcName-entry | var=$variable" 
 **文件日志模式：** 每次执行前先写入 run 分隔符：
 
 ```bash
-RUN_NUM=$(($(grep -oE 'run_count=[0-9]+' .claude-debug/state | cut -d= -f2) + 1))
-echo "run_count=$RUN_NUM" > .claude-debug/state
-echo -e "\n========== RUN #$RUN_NUM | $(date -Iseconds) ==========" >> .claude-debug/debug.log
+RUN_NUM=$(($(grep -oE 'run_count=[0-9]+' .debug_log/state | cut -d= -f2) + 1))
+echo "run_count=$RUN_NUM" > .debug_log/state
+echo -e "\n========== RUN #$RUN_NUM | $(date -Iseconds) ==========" >> .debug_log/debug.log
 ```
 
 然后执行项目运行命令。
@@ -242,7 +249,7 @@ echo -e "\n========== RUN #$RUN_NUM | $(date -Iseconds) ==========" >> .claude-d
 **文件日志：**
 
 ```bash
-cat .claude-debug/debug.log
+cat .debug_log/debug.log
 ```
 
 **控制台日志：** 分析用户粘贴的内容。
@@ -266,7 +273,7 @@ cat .claude-debug/debug.log
 
 文件日志模式：
 ```bash
-echo -e "\n========== VERIFY | $(date -Iseconds) ==========" >> .claude-debug/debug.log
+echo -e "\n========== VERIFY | $(date -Iseconds) ==========" >> .debug_log/debug.log
 <运行命令>
 ```
 
@@ -291,7 +298,7 @@ echo -e "\n========== VERIFY | $(date -Iseconds) ==========" >> .claude-debug/de
 
 ```bash
 # 删除调试目录
-rm -rf .claude-debug/
+rm -rf .debug_log/
 ```
 
 搜索所有探针块：
@@ -329,7 +336,7 @@ grep -rn "DEBUG PROBE" . --include="*.ts" --include="*.js" --include="*.py" --in
 
 - 探针代码**不得影响原有逻辑**（必要时用 try-catch 包裹或抑制错误）
 - 所有探针必须用 `🔍 DEBUG PROBE [N] label` / `🔍 DEBUG PROBE END [N]` 块标记包裹——保证清理时可整块安全删除
-- 日志目录 `.claude-debug/`，日志文件 `.claude-debug/debug.log`，运行计数 `.claude-debug/state`
+- 日志目录 `.debug_log/`，日志文件 `.debug_log/debug.log`，运行计数 `.debug_log/state`
 - 每次运行用 `========== RUN #N | timestamp ==========` 分隔，验证运行用 `========== VERIFY | timestamp ==========`
-- 若 `.claude-debug/` 未被忽略，应加入 `.gitignore`
+- Step 2 已自动把 `.debug_log/` 加入 `.gitignore`，无需手动处理
 - 对生产代码，插入探针前务必先与用户确认

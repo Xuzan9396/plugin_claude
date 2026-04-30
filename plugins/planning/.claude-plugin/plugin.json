@@ -1,7 +1,7 @@
 {
   "name": "xz-planning",
   "description": "轻量级版本计划驱动开发 - 基于 todolist 的开发流程管理工具",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "author": {
     "name": "xuzan"
   }
