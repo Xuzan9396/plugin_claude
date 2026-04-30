@@ -74,12 +74,12 @@ plugin_claude/
         │   ├── xz-update-plan/     ← 修改计划
         │   ├── xz-review/          ← 代码审查
         │   ├── xz-test/            ← 生成测试指南
-        │   ├── xz-debug/           ← Bug 诊断xx
+        │   ├── xz-debug/           ← Bug 诊断（静态分析）
+        │   ├── xz-debug-mode/      ← 运行时探针调试模式
         │   ├── xz-status/          ← 查看进度
         │   ├── xz-done/            ← 归档版本
         │   ├── xz-ref/             ← 加载历史版本
-        │   ├── xz-del/             ← 删除版本
-        │   └── xz-remove-all/      ← 清理全部
+        │   └── xz-del/             ← 删除版本
         ├── agents/                 ← 子代理
         │   └── xz-code-reviewer.md
         ├── bin/                    ← 辅助脚本
@@ -151,6 +151,22 @@ XZ Planning 将开发流程标准化为 **六个阶段**：
                           │  /xz-planning:xz-done N          │  必须，归档
                           └─────────────────────────────────┘
 ```
+
+**辅助技能**（按需手动调用，不在主线流程中）：
+
+| 命令 | 用途 |
+|:-----|:-----|
+| `/xz-planning:xz-update-plan N 操作` | 中途增删改 todolist 条目 |
+| `/xz-planning:xz-status` | 查看所有版本进度总览 |
+| `/xz-planning:xz-ref N` 或 `N1,N2,N3` | 加载历史版本作为上下文 |
+| `/xz-planning:xz-del N` | 删除单个版本目录 |
+| `/xz-planning:xz-debug 问题描述` | 静态分析：根据现象查 bug 给修复建议 |
+| `/xz-planning:xz-debug-mode 问题描述` | 运行时探针：插日志、收集证据、定位偶发/竞态 bug |
+
+**xz-debug vs xz-debug-mode 怎么选？**
+
+- **xz-debug**：静态分析，读代码 + 经验推断。适合堆栈清晰、错误信息明确、能直接定位的 bug
+- **xz-debug-mode**：运行时探针，插入日志 → 复现 → 收日志 → 基于证据定位。适合静态看不出原因的偶发问题，比如竞态、时序、性能、内存泄漏、回归。日志写入项目根的 `.debug_log/`，并自动加入 `.gitignore`
 
 
 
@@ -343,7 +359,7 @@ Claude Code 使用 **marketplace** 来组织和分发插件。一个 marketplace
 }
 ```
 
-### 5.2 安装方式
+### 4.2 安装方式
 
 **方式一：通过市场安装（推荐）**
 
@@ -370,7 +386,7 @@ claude --dangerously-skip-permissions  --plugin-dir /Users/admin/go/src/myai/plu
 claude --plugin-dir ./plugin-one --plugin-dir ./plugin-two
 ```
 
-### 5.3 管理命令
+### 4.3 管理命令
 
 ```bash
 /plugin marketplace list           # 查看已安装的市场和插件
@@ -379,13 +395,13 @@ claude --plugin-dir ./plugin-one --plugin-dir ./plugin-two
 /plugin marketplace remove xz-tools     # 删除市场
 ```
 
-### 5.4 本地改动后如何让插件生效
+### 4.4 本地改动后如何让插件生效
 
 本地源改动（SKILL.md / agents / bin 脚本）不会自动同步到 `~/.claude/plugins/cache/` 下的安装副本。改完源码需要重装：
 
 ```bash
-/plugin uninstall xz-planning
-/plugin install xz-planning
+/plugin uninstall xz-planning@xz-tools
+/plugin install xz-planning@xz-tools
 /reload-plugins
 ```
 
