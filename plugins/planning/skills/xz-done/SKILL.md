@@ -37,16 +37,13 @@ xz-tools.py parse $ARGUMENTS
 ### 第二步：判断是否可归档
 
 - **全部 `[x]`** → 直接进入归档流程
-- **存在 `[ ]`** → 使用 AskUserQuestion 工具警告并让用户选择：
+- **存在 `[ ]`** → 以纯文本警告并提问（禁用 AskUserQuestion）：
 
-  - question: "版本 N 还有 X 条未完成任务。如何处理？"
-  - header: "未完成警告"
-  - options:
-    - label: "强制归档", description: "忽略未完成条目，直接归档"
-    - label: "返回继续执行", description: "执行 /xz-exec N 完成剩余任务"
-  - multiSelect: false
+  > 版本 N 还有 X 条未完成任务。回复：
+  >   1) 强制归档 — 忽略未完成条目，直接归档
+  >   2) 返回继续执行 — 执行 /xz-exec N 完成剩余任务
 
-  用户选择「返回继续执行」则停止归档。选择「强制归档」则继续。如果用户选择 Other，按其输入内容响应。
+  回复「返回继续执行」则停止归档；「强制归档」则继续；其他输入按内容响应。
 
 ### 第三步：执行归档
 
@@ -80,16 +77,11 @@ date "+%Y-%m-%d %H:%M:%S"
 
 显示归档摘要：版本号、需求名称、完成条数、归档时间。
 
-然后使用 AskUserQuestion 工具让用户选择下一步操作：
+然后以纯文本输出下一步选项：
 
-- question: "版本 N 已归档。接下来要做什么？"
-- header: "下一步"
-- options:
-  - label: "/xz-status", description: "查看所有版本状态"
-  - label: "/xz-plan N", description: "创建新版本计划"
-- multiSelect: false
+> 版本 N 已归档。下一步: /xz-status（查看所有版本状态）/ /xz-plan N（创建新版本计划）
 
-用户选择后，执行对应的 skill 命令。如果用户选择 Other，按其输入内容响应。
+用户回复后执行对应的 skill 命令。
 
 ## 关键规则
 

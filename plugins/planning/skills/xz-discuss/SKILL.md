@@ -134,31 +134,19 @@ xz-tools.py parse $0
 - 如果需求涉及**多个独立子系统**（如"做一个平台，有聊天、文件存储、计费、分析"），**立即指出**，建议拆分为多次 `/xz-discuss`，每个子需求独立讨论
 - 不要在拆分前深入细节
 
-**澄清提问（使用 AskUserQuestion 工具逐条进行）：**
-- **一次只问一个问题**，每次调用 AskUserQuestion 只包含 1 个 question，等用户回复后再问下一个
-- **优先选择题**，将选项映射为 AskUserQuestion 的 options（2-4 个选项），用户可通过内置 Other 自由输入
+**澄清提问（纯文本逐条进行，禁用 AskUserQuestion——其弹窗会吞掉同回复中前面的文本）：**
+- **一次只问一个问题**，等用户回复后再问下一个
+- **优先选择题**，给 a/b/c 选项（2-4 个），用户也可自由输入
 - 聚焦：目的、约束条件、成功标准、用户预期
 - 轻量需求（意图已经很清晰）可以跳过，直接进入第四步
 
-**澄清问题示例（AskUserQuestion 格式）：**
+**澄清问题示例（文本格式）：**
 
-示例 1:
-- question: "这个工具主要给谁用？"
-- header: "目标用户"
-- options: label: "内部团队" / label: "外部客户" / label: "两者都有"
-- multiSelect: false
-
-示例 2:
-- question: "数据量大概什么级别？"
-- header: "数据规模"
-- options: label: "百级" / label: "万级" / label: "百万级以上"
-- multiSelect: false
-
-示例 3（开放题，仍用 AskUserQuestion）:
-- question: "有没有必须集成的现有系统？"
-- header: "系统集成"
-- options: label: "没有", description: "独立运行" / label: "有", description: "请在 Other 中说明具体系统"
-- multiSelect: false
+> 示例 1：这个工具主要给谁用？  a. 内部团队  b. 外部客户  c. 两者都有
+>
+> 示例 2：数据量大概什么级别？  a. 百级  b. 万级  c. 百万级以上
+>
+> 示例 3（开放题）：有没有必须集成的现有系统？  a. 没有（独立运行）  b. 有（请直接说明具体系统）
 
 ### 第四步：提供可视化辅助（可选）
 
@@ -407,17 +395,14 @@ date "+%Y-%m-%d %H:%M:%S"
 
 ### 第九步：等待确认
 
-使用 AskUserQuestion 工具确认讨论文档：
+在讨论文档草案同一条回复末尾以纯文本提问确认（禁用 AskUserQuestion——其弹窗会吞掉同回复中前面的文档文本）：
 
-- question: "以上讨论文档是否确认？"
-- header: "文档确认"
-- options:
-  - label: "确认写入", description: "保存 N-DISCUSS.md 并刷新 STATE.md"
-  - label: "确认并选方案", description: "指定推荐方案后写入，后续 /xz-plan N 据此生成 todolist"
-  - label: "修改意见", description: "调整后重新输出草案"
-- multiSelect: false
+> 以上讨论文档是否确认？回复：
+>   1) 确认写入 — 保存 N-DISCUSS.md 并刷新 STATE.md
+>   2) 确认并选方案 — 如「确认，选方案 A」，后续 /xz-plan N 据此生成 todolist
+>   3) 修改意见 — 调整后重新输出草案
 
-其中 N 替换为用户传入的实际版本号。用户选择「确认并选方案」时，追问选择哪个方案（或用户在 Other 中直接指定如"确认，选方案 A"）。用户选择「修改意见」或 Other 时，按其反馈调整后重新输出草案。
+其中 N 替换为用户传入的实际版本号。用户回复「修改意见」或其他反馈时，按其反馈调整后重新输出草案。
 
 **禁止自动写入文件。必须等待明确确认。**
 
@@ -452,16 +437,11 @@ bash $SKILL_DIR/scripts/stop-server.sh $SCREEN_DIR
   .xz_planning/phases/$0.xxx/$0-DISCUSS.md
 ```
 
-然后使用 AskUserQuestion 工具让用户选择下一步操作：
+然后以纯文本输出下一步选项：
 
-- question: "接下来要做什么？"
-- header: "下一步"
-- options:
-  - label: "/xz-plan $0", description: "基于讨论结果创建执行计划（自动引用 DISCUSS）"
-  - label: "/xz-status", description: "查看所有版本状态"
-- multiSelect: false
+> 下一步: /xz-plan $0（基于讨论结果创建执行计划，自动引用 DISCUSS）/ /xz-status（查看所有版本状态）
 
-其中 `$0` 替换为用户传入的实际版本号。用户选择后，执行对应的 skill 命令。如果用户选择 Other，按其输入内容响应。
+其中 `$0` 替换为用户传入的实际版本号。用户回复后执行对应的 skill 命令。
 
 ---
 

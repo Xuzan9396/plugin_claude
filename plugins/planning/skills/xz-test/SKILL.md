@@ -224,13 +224,8 @@ date "+%Y-%m-%d %H:%M:%S"
 
 ## 下一步建议
 
-生成 N-UAT.md 后，使用 AskUserQuestion 工具让用户选择下一步操作：
+生成 N-UAT.md 后，以纯文本输出下一步选项：
 
-- question: "N-UAT.md 已生成，接下来要做什么？"
-- header: "下一步"
-- options:
-  - label: "/xz-done N", description: "归档版本"
-  - label: "/xz-review N", description: "代码审查（可选，如未做过）"
-- multiSelect: false
+> N-UAT.md 已生成。下一步: /xz-done N（归档版本）/ /xz-review N（代码审查，如未做过）
 
-用户选择后，执行对应的 skill 命令。如果用户选择 Other，按其输入内容响应。
+用户回复后执行对应的 skill 命令。

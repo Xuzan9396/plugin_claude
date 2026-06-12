@@ -43,16 +43,13 @@ xz-tools.py parse $ARGUMENTS
 
 ### 第三步：确认删除
 
-使用 AskUserQuestion 工具确认删除操作：
+以纯文本提问确认删除（禁用 AskUserQuestion，其弹窗会吞掉同回复中前面的版本信息文本）：
 
-- question: "即将永久删除版本 N: {需求名}（{完成进度}）。此操作不可恢复，确认删除？"
-- header: "确认删除"
-- options:
-  - label: "确认删除", description: "永久删除该版本的全部计划文件，不可恢复"
-  - label: "取消", description: "放弃删除，保留当前计划"
-- multiSelect: false
+> 即将永久删除版本 N: {需求名}（{完成进度}）。此操作不可恢复。回复：
+>   1) 确认删除 — 永久删除该版本的全部计划文件
+>   2) 取消 — 保留当前计划
 
-用户选择「取消」则停止操作。选择「确认删除」则进入第四步。如果用户选择 Other，按其输入内容响应。
+回复「取消」则停止操作；「确认删除」进入第四步；其他输入按内容响应。
 
 ### 第四步：执行删除
 
@@ -66,13 +63,8 @@ xz-tools.py delete $ARGUMENTS
 
 ### 第五步：输出结果
 
-显示删除完成的确认信息，然后使用 AskUserQuestion 工具让用户选择下一步操作：
+以纯文本显示删除完成信息和下一步选项：
 
-- question: "版本 N 已删除。接下来要做什么？"
-- header: "下一步"
-- options:
-  - label: "/xz-status", description: "查看所有版本状态"
-  - label: "/xz-plan N", description: "创建新版本计划"
-- multiSelect: false
+> 版本 N 已删除。下一步: /xz-status（查看所有版本状态）/ /xz-plan N（创建新版本计划）
 
-用户选择后，执行对应的 skill 命令。如果用户选择 Other，按其输入内容响应。
+用户回复后执行对应的 skill 命令。

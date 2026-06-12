@@ -84,7 +84,7 @@ xz-tools.py parse $ARGUMENTS
    a. 按计划补建（AI 创建该文件）  b. 跳过，我自己补
 ```
 
-**AskUserQuestion**：每个问题点一个 question（最多 4 个，超出分批问），options 即各处理方式（`a` 标推荐）。
+**纯文本提问（禁用 AskUserQuestion——其弹窗会吞掉同回复中前面的清单文本）**：清单末尾提示「回复如 `1a 2b`，或『全部按计划修正』/『全部保持现状』」。
 
 用户选定后才执行：选「按计划修正」→ AI 改完做语法检查再勾选，变更记录标「#N 经用户确认按计划修正」；选「保持现状」→ 不动代码直接勾选，**并把 N-PLAN.md change details 与 N-MANUAL.md 对应块改写为手动实际实现**，标「#N 经用户确认保留手动实现，已对齐 PLAN/MANUAL」；选「跳过」→ 不动不勾，标「#N 待用户手动处理」。
 
@@ -115,8 +115,8 @@ xz-tools.py parse $ARGUMENTS
 |------|------|
 | 已完成条目的改动已正确落地，代码与 change details 一致 | 正常继续，进入第四步 |
 | 有小幅偏差但不影响后续任务（如变量名略不同、多了注释） | 记录偏差，适配后续执行，进入第四步 |
-| 已完成条目的改动未落地（标了完成但代码没改） | **停下来报告用户**，说明哪些条目标记完成但实际未执行，然后用 AskUserQuestion 让用户决定。question: "以下条目标记完成但实际未执行: {列表}。如何处理？" options: "重新执行这些条目" / "跳过继续后续" |
-| 已完成的改动与 change details 偏差较大（用了不同方案、改了不同文件、结构重组） | **停下来报告用户**，列出具体偏差点，然后用 AskUserQuestion 让用户决定。question: "已完成改动与计划偏差较大: {偏差点摘要}。如何处理？" options: "回退重做 — 按原计划执行" / "基于现状调整 — /xz-update-plan N" |
+| 已完成条目的改动未落地（标了完成但代码没改） | **停下来报告用户**，文本列出未执行条目并提问：「以下条目标记完成但实际未执行: {列表}。回复 1) 重新执行这些条目 2) 跳过继续后续」 |
+| 已完成的改动与 change details 偏差较大（用了不同方案、改了不同文件、结构重组） | **停下来报告用户**，文本列出具体偏差点并提问：「已完成改动与计划偏差较大: {偏差点摘要}。回复 1) 回退重做—按原计划执行 2) 基于现状调整—/xz-update-plan N」 |
 
 ### 第四步：执行任务
 
@@ -156,19 +156,15 @@ xz-tools.py update-state
 - **有** → 回到第四步继续执行
 - **无** → 全部完成，输出下一步建议：
 
-**全部完成时：** 使用 AskUserQuestion 工具让用户选择下一步操作：
+**全部完成时：** 以纯文本输出下一步选项（禁用 AskUserQuestion）：
 
-- question: "版本 N 的 todolist 已全部完成。接下来要做什么？"
-- header: "下一步"
-- options:
-  - label: "/xz-review N", description: "代码审查（可选）"
-  - label: "/xz-test N", description: "生成测试指南（可选）"
-  - label: "/xz-update-plan N", description: "追加/更新计划（有新需求或遗漏项需要加条目）"
-  - label: "/xz-done N", description: "归档版本"
-- multiSelect: false
+> 版本 N 的 todolist 已全部完成。接下来：
+>   /xz-review N — 代码审查（可选）
+>   /xz-test N — 生成测试指南（可选）
+>   /xz-update-plan N — 追加/更新计划（有新需求或遗漏项）
+>   /xz-done N — 归档版本
 
-
-用户选择后，执行对应的 skill 命令。如果用户选择 Other，按其输入内容响应。
+用户回复后执行对应 skill 命令。
 
 ---
 
