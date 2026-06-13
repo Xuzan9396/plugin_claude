@@ -17,10 +17,38 @@ ARCHIVE_DIR = PLANNING_DIR / "archive"
 STATE_FILE = PLANNING_DIR / "STATE.md"
 
 
+# 版本号格式：整数或小数，如 1 / 1.5 / 2.5 / 1.5.2
+_VERSION_RE = r"\d+(?:\.\d+)*"
+
+
+def _version_tuple(v: str):
+    """版本号字符串转可比较的数值元组：'1.5' -> (1, 5)，'2' -> (2,)。"""
+    return tuple(int(p) for p in v.split("."))
+
+
+def _split_dir(name: str):
+    """拆分目录名 'N.名称' -> (版本号, 名称)，版本号支持小数。
+    '1.5.订单优化' -> ('1.5', '订单优化')；'1.订单优化' -> ('1', '订单优化')。
+    版本号后必须紧跟 '.' 再接名称；不匹配返回 (None, None)。"""
+    m = re.match(rf"^({_VERSION_RE})\.(.+)$", name)
+    if m:
+        return m.group(1), m.group(2)
+    return None, None
+
+
+def _parse_n(n: str):
+    """用户输入的版本号 -> 数值元组，非法返回 None。"""
+    if n and re.fullmatch(_VERSION_RE, n):
+        return _version_tuple(n)
+    return None
+
+
 def _sort_by_version(path: Path):
-    """按目录名前缀数字排序：'10.xxx' 排在 '2.xxx' 之后。非数字前缀退化为 inf + 字符串。"""
-    m = re.match(r"^(\d+)\.", path.name)
-    return (int(m.group(1)) if m else float("inf"), path.name)
+    """按版本号数值排序：'1.xxx' < '1.5.xxx' < '2.xxx' < '10.xxx'。非版本目录退化到末尾。"""
+    ver, _ = _split_dir(path.name)
+    if ver:
+        return (0, _version_tuple(ver), "")
+    return (1, (), path.name)
 
 
 def _sorted_phases(base: Path):
@@ -44,39 +72,43 @@ def init():
     print(json.dumps({"ok": True, "planning_dir": str(PLANNING_DIR)}))
 
 
+def _build_phase(d: Path, ver: str, archived: bool) -> dict:
+    """用目录真实版本号构造 phase 信息（文件名以目录解析出的版本号为准）。"""
+    plan_file = d / f"{ver}-PLAN.md"
+    discuss_file = d / f"{ver}-DISCUSS.md"
+    return {
+        "dir": str(d),
+        "dir_name": d.name,
+        "version": ver,
+        "plan_file": str(plan_file),
+        "plan_exists": plan_file.exists(),
+        "discuss_file": str(discuss_file),
+        "discuss_exists": discuss_file.exists(),
+        "archived": archived,
+    }
+
+
 def find_phase(n: str, include_archive: bool = False) -> dict | None:
-    """查找版本 N 对应的 phases 目录。include_archive=True 时也查 archive。"""
-    if not PHASES_DIR.exists():
+    """查找版本 N 对应的 phases 目录。版本号按数值精确匹配（查 '1' 不会误中 '1.5'）。
+    include_archive=True 时也查 archive。"""
+    target = _parse_n(n)
+    if target is None or not PHASES_DIR.exists():
         return None
     # 先找活跃版本
     for d in PHASES_DIR.iterdir():
-        if d.is_dir() and d.name != "archive" and d.name.startswith(f"{n}."):
-            plan_file = d / f"{n}-PLAN.md"
-            discuss_file = d / f"{n}-DISCUSS.md"
-            return {
-                "dir": str(d),
-                "dir_name": d.name,
-                "plan_file": str(plan_file),
-                "plan_exists": plan_file.exists(),
-                "discuss_file": str(discuss_file),
-                "discuss_exists": discuss_file.exists(),
-                "archived": False,
-            }
+        if not d.is_dir() or d.name == "archive":
+            continue
+        ver, _ = _split_dir(d.name)
+        if ver and _version_tuple(ver) == target:
+            return _build_phase(d, ver, archived=False)
     # 再找归档版本
     if include_archive and ARCHIVE_DIR.exists():
         for d in ARCHIVE_DIR.iterdir():
-            if d.is_dir() and d.name.startswith(f"{n}."):
-                plan_file = d / f"{n}-PLAN.md"
-                discuss_file = d / f"{n}-DISCUSS.md"
-                return {
-                    "dir": str(d),
-                    "dir_name": d.name,
-                    "plan_file": str(plan_file),
-                    "plan_exists": plan_file.exists(),
-                    "discuss_file": str(discuss_file),
-                    "discuss_exists": discuss_file.exists(),
-                    "archived": True,
-                }
+            if not d.is_dir():
+                continue
+            ver, _ = _split_dir(d.name)
+            if ver and _version_tuple(ver) == target:
+                return _build_phase(d, ver, archived=True)
     return None
 
 
@@ -134,11 +166,9 @@ def status():
         for d in _sorted_phases(PHASES_DIR):
             if not d.is_dir() or d.name == "archive":
                 continue
-            match = re.match(r"^(\d+)\.(.+)$", d.name)
-            if not match:
+            n, name = _split_dir(d.name)
+            if n is None:
                 continue
-            n = match.group(1)
-            name = match.group(2)
             plan_file = d / f"{n}-PLAN.md"
             discuss_file = d / f"{n}-DISCUSS.md"
             total = 0
@@ -164,9 +194,9 @@ def status():
         for d in _sorted_phases(ARCHIVE_DIR):
             if not d.is_dir():
                 continue
-            match = re.match(r"^(\d+)\.(.+)$", d.name)
-            if match:
-                archived.append({"version": match.group(1), "name": match.group(2)})
+            n, name = _split_dir(d.name)
+            if n is not None:
+                archived.append({"version": n, "name": name})
 
     print(
         json.dumps(
@@ -344,10 +374,9 @@ def _update_state():
         for d in _sorted_phases(PHASES_DIR):
             if not d.is_dir() or d.name == "archive":
                 continue
-            match = re.match(r"^(\d+)\.(.+)$", d.name)
-            if not match:
+            n, name = _split_dir(d.name)
+            if n is None:
                 continue
-            n, name = match.group(1), match.group(2)
             plan_file = d / f"{n}-PLAN.md"
             discuss_file = d / f"{n}-DISCUSS.md"
             total = completed = 0
@@ -377,9 +406,8 @@ def _update_state():
         for d in _sorted_phases(ARCHIVE_DIR):
             if not d.is_dir():
                 continue
-            match = re.match(r"^(\d+)\.(.+)$", d.name)
-            if match:
-                n, name = match.group(1), match.group(2)
+            n, name = _split_dir(d.name)
+            if n is not None:
                 # 尝试从 PLAN 文件提取完成时间
                 plan_file = d / f"{n}-PLAN.md"
                 archived_time = ""

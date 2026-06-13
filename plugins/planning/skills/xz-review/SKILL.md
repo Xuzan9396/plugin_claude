@@ -13,7 +13,7 @@ agent: xz-code-reviewer
 
 ### 参数校验
 
-如果 `$ARGUMENTS` 为空或不是正整数，**立即停止**，提示：
+如果 `$ARGUMENTS` 为空或不是合法版本号（正整数，或小数如 1.5），**立即停止**，提示：
 
 > 缺少版本号。用法: `/xz-review N`
 > 示例: `/xz-review 1`

@@ -13,7 +13,7 @@ argument-hint: "[N] [修改/新增/删除要求]"
 
 ### 参数校验
 
-如果 `$ARGUMENTS` 为空或 `$0` 不是正整数，**立即停止**，提示：
+如果 `$ARGUMENTS` 为空或 `$0` 不是合法版本号（正整数，或小数如 1.5），**立即停止**，提示：
 
 > 缺少版本号。用法: `/xz-update-plan N 操作描述`
 > 示例: `/xz-update-plan 1 修改 #3 增加 refresh token 逻辑`
