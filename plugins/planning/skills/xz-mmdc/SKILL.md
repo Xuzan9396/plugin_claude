@@ -9,15 +9,9 @@ argument-hint: "<序号> <中文描述/流程需求>"
 
 ## 路径说明
 
-**辅助脚本：** `xz-tools.py`（插件启用时 `bin/` 自动加入 PATH，直接裸命令调用即可，无需 `python3` 前缀和绝对路径）。脚本在**当前工作目录**下操作 `.xz_planning/`。
+**辅助脚本：** `xz-mmdc-path.sh` 和 `xz-mmdc-render.sh`（插件启用时 `bin/` 自动加入 PATH，直接裸命令调用即可，无需 `python3` 前缀、无需绝对路径、也不需要先解析 skill 目录）。两个脚本都在**当前工作目录**下操作 `.xz_planning/`。
 
-**本 skill 目录：** 本 skill 的本地脚本（make-output-path.sh、render-flowchart.sh）需要通过绝对路径访问。**执行前第零步**：运行
-
-```bash
-xz-tools.py skill-path xz-mmdc
-```
-
-拿到返回的绝对路径，**记为 `$SKILL_DIR`**，本文档后续所有 `$SKILL_DIR` 字面量都替换成这个真实路径再使用（包括 Bash 命令）。
+> 注意：**不要**调用 `~/.codex/skills/mmdc/scripts/...` 这类 codex 端绝对路径，那是 Codex 的脚本，在 Claude 端不存在。Claude 端一律用上面的裸命令。
 
 ## 强制规则
 
@@ -39,7 +33,7 @@ xz-tools.py skill-path xz-mmdc
 2. 运行路径生成脚本，拿到默认输出目录、`.mmd`、`.svg` 和 `process.md` 路径。不要手写截断逻辑，也不要绕过重复序号检查：
 
 ```bash
-$SKILL_DIR/scripts/make-output-path.sh <序号> <中文描述...>
+xz-mmdc-path.sh <序号> <中文描述...>
 ```
 
 脚本输出格式固定为：
@@ -59,7 +53,7 @@ process=.xz_planning/mmdc-output/1.aaa流程/1-process.md
 8. 把 Mermaid 源码写入路径脚本返回的 `.mmd` 文件后运行渲染脚本：
 
 ```bash
-$SKILL_DIR/scripts/render-flowchart.sh <input.mmd> [output.svg|output.png|output.pdf] [theme] [backgroundColor]
+xz-mmdc-render.sh <input.mmd> [output.svg|output.png|output.pdf] [theme] [backgroundColor]
 ```
 
 9. 脚本会自动按节点数量、最长行和方向估算 `--width/--height`，默认字体 18px，并把 SVG 设置为响应式宽度。脚本不会自动打开文件，只打印渲染结果路径。
@@ -139,19 +133,19 @@ go:room_robot_num:%d
 - 默认字体大小为 18px。用户要求更大时，运行前设置环境变量，例如：
 
 ```bash
-MMDC_FONT_SIZE=22 $SKILL_DIR/scripts/render-flowchart.sh <input.mmd> <output.svg>
+MMDC_FONT_SIZE=22 xz-mmdc-render.sh <input.mmd> <output.svg>
 ```
 
 - 默认自适应宽高由脚本计算。用户指定尺寸时，运行前设置环境变量，例如：
 
 ```bash
-MMDC_WIDTH=3600 MMDC_HEIGHT=9000 $SKILL_DIR/scripts/render-flowchart.sh <input.mmd> <output.svg>
+MMDC_WIDTH=3600 MMDC_HEIGHT=9000 xz-mmdc-render.sh <input.mmd> <output.svg>
 ```
 
 - SVG 默认响应式显示。只有用户明确要求“原始像素尺寸”“固定大小”时才设置：
 
 ```bash
-MMDC_SVG_SIZE_MODE=fixed $SKILL_DIR/scripts/render-flowchart.sh <input.mmd> <output.svg>
+MMDC_SVG_SIZE_MODE=fixed xz-mmdc-render.sh <input.mmd> <output.svg>
 ```
 
 ## mmdc 参数规则
