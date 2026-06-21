@@ -445,3 +445,5 @@ claude --plugin-dir ./plugin-one --plugin-dir ./plugin-two
 ##### 2.根据好开源的最佳实践，实现一个适合公司项目或者个人
 
 #####  3.开源的提示词工程也不是适合每个人项目，最重要能项目能快速又同时安全落地这个才是核心所在
+
+fcodex --add-dir ../skills/codex
