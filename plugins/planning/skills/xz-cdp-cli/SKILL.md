@@ -1,7 +1,8 @@
 ---
-name: chrome-devtools
+name: xz-cdp-cli
 description: 当用户要求“截取网站截图”“导航到某个 URL”“在浏览器中填写表单”“与 Chrome 交互”，或任务需要 Chrome 自动化时使用。
 user-invocable: true
+disable-model-invocation: true
 ---
 
 # Chrome DevTools CLI
