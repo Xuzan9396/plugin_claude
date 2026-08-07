@@ -340,6 +340,68 @@ chrome-devtools inspect-heapsnapshot-node --file-path /tmp/current.heapsnapshot 
 
 **⚠️ 两个快照必须来自同一个 Chrome 会话。** 差异比较依赖 V8 堆对象 ID，而该 ID 只在同一浏览器会话中稳定。跨 Chrome 重启、配置文件或机器比较毫无意义，几乎所有对象都会同时显示为新增与移除；CLI 检测到这种情况时会在 stderr 输出警告。
 
+### 模式 16：无头 Chrome（无需登录态，无需人工批准）
+
+当被测流程不需要用户的 Cookie 或登录凭据时，应启动一个一次性的无头 Chrome，而不是附着到用户自己的浏览器。由于该实例启动时就已开启远程调试，**不会出现任何授权确认弹窗**，整个流程可无人值守运行。
+
+```bash
+PROFILE=$(mktemp -d)
+
+# 1. 若守护进程已附着到用户的真实 Chrome，先终止它
+#    （守护进程按用户维度存在，且会一直粘在它首次连接的那个 Chrome 上）
+chrome-devtools kill-daemon --force
+
+# 2. 用隔离的配置目录启动无头 Chrome；端口 0 表示自动选择空闲端口
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  --headless=new --remote-debugging-port=0 \
+  --user-data-dir="$PROFILE" \
+  --no-first-run --no-default-browser-check \
+  about:blank &
+CHROME_PID=$!
+
+# 3. 清理逻辑 —— 即使后续步骤失败也必须执行：守护进程已绑定到这个无头实例，
+#    否则会劫持后续本应发往用户真实 Chrome 的命令。用 trap 保证任何退出路径都会清理，
+#    而不只是成功路径。
+cleanup() {
+  chrome-devtools kill-daemon --force
+  kill "$CHROME_PID" 2>/dev/null
+  # Chrome 是异步关闭的，发出 SIGTERM 后立即删除配置目录会与它的退出流程竞争，
+  # 可能导致 Chrome 仍在运行却指向一个已不存在的目录。因此要等待进程真正退出，
+  # 但需设上限（5 秒），超时后改用 SIGKILL，避免忽略 SIGTERM 的 Chrome 把 trap 卡死。
+  for _ in $(seq 1 20); do
+    kill -0 "$CHROME_PID" 2>/dev/null || break
+    sleep 0.25
+  done
+  if kill -0 "$CHROME_PID" 2>/dev/null; then
+    kill -9 "$CHROME_PID" 2>/dev/null
+  fi
+  wait "$CHROME_PID" 2>/dev/null
+  rm -rf "$PROFILE"
+}
+trap cleanup EXIT
+
+# 4. DevToolsActivePort 只在 DevTools 服务真正开始监听之后才写入，
+#    因此就绪信号是该文件是否存在，而不是进程是否存活；过早连接会与启动过程竞争。
+#    同样设上限（30 秒）并监控 PID，让崩溃或根本没起来的 Chrome 直接让脚本失败，
+#    而不是永久挂起。
+for _ in $(seq 1 60); do
+  [ -f "$PROFILE/DevToolsActivePort" ] && break
+  kill -0 "$CHROME_PID" 2>/dev/null || { echo "Chrome exited during startup" >&2; exit 1; }
+  sleep 0.5
+done
+[ -f "$PROFILE/DevToolsActivePort" ] || { echo "Chrome not ready after 30s" >&2; exit 1; }
+
+# 5. 每条命令都需要用 --user-data-dir 指向该无头配置目录；
+#    CLI 会读取其中的 DevToolsActivePort 自动连接
+chrome-devtools --user-data-dir "$PROFILE" navigate https://example.com
+chrome-devtools --user-data-dir "$PROFILE" evaluate 'document.title'
+chrome-devtools --user-data-dir "$PROFILE" screenshot --output /tmp/shot.png
+```
+
+Linux 环境下，把 macOS 的 `.app` 二进制路径替换为 `$PATH` 中的 `google-chrome` 或 `chromium`。
+
+**⚠️ 每个用户只有一个守护进程，且绑定单个 Chrome。** 守护进程会连接到第一条命令解析出的那个 Chrome，后续命令即使参数指向别处也仍会复用它。在用户的 Chrome 与无头实例之间切换时，**两个方向都必须**执行 `kill-daemon --force`（即上面的第 1 步与 EXIT trap）。
+
 ## 完整命令参考
 
 ### 导航
