@@ -306,4 +306,4 @@ if __name__ == "__main__":
 > 测试用例已生成:
 >   .xz_planning/cases/md/{文件名}.md
 >   .xz_planning/cases/xlsx/{文件名}.xlsx（给测试人员，含测试白话说明 + 测试结果/备注列）
-> 下一步: /xz-test N（生成手动测试指南）/ /xz-done N（归档版本）
+> 下一步: /xz-done N（归档版本）

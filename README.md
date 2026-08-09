@@ -73,7 +73,6 @@ plugin_claude/
         │   ├── xz-discuss/         ← PM x Dev 双视角讨论
         │   ├── xz-update-plan/     ← 修改计划
         │   ├── xz-review/          ← 代码审查
-        │   ├── xz-test/            ← 生成测试指南
         │   ├── xz-debug/           ← Bug 诊断（静态分析）
         │   ├── xz-debug-mode/      ← 运行时探针调试模式
         │   ├── xz-status/          ← 查看进度
@@ -111,9 +110,8 @@ XZ Planning 将开发流程标准化为 **六个阶段**：
 | 初始化 | `/xz-planning:xz-init` | 扫描项目结构，生成 PROJECT.md 快照 | /xz-init |
 | 需求讨论 | `/xz-planning:xz-discuss 1 需求` | 启动 PM 和 Dev 双代理并行分析，输出 A/B/C 方案<br />/xz-discuss 1 帮我用 Python 写一个命令行 Todo List，支持新增任务、查看任务、标记完成、删除任务，数据保存到本地 JSON 文件 | ![image-20260408010155345](README.assets/image-20260408010155345.png) |
 | 制定计划 | `/xz-planning:xz-plan 1 需求` | 分析代码 → 提出方案 → 用户确认 → 生成原子化 todolist | ![image-20260408010515129](README.assets/image-20260408010515129.png)![image-20260408010632280](README.assets/image-20260408010632280.png) |
-| 执行计划 | `/xz-planning:xz-exec 1` | 逐条执行 todo，每条完成后语法检查并更新状态 | ![image-20260408010709124](README.assets/image-20260408010709124.png) |
+| 执行计划 | `/xz-planning:xz-exec 1` | 逐条执行 todo，每条完成后语法检查并更新状态；全部完成后自动跑闭环测试（失败自行修复 + 全量回归），产出 `N-TEST-REPORT.md` | ![image-20260408010709124](README.assets/image-20260408010709124.png) |
 | 代码审查 | `/xz-planning:xz-review 1` | 调用 xz-code-reviewer 代理审查变更 | ![image-20260408012055438](README.assets/image-20260408012055438.png) |
-| 生成手动测试 | `/xz-planning:xz-test 1` | 生成手动测试文档 UAT.md | ![image-20260408012245488](README.assets/image-20260408012245488.png)![image-20260408012157801](README.assets/image-20260408012157801.png) |
 | 归档 | `/xz-planning:xz-done 1` | 检查完成度，归档到 archive/ 目录 | ![image-20260408012624027](README.assets/image-20260408012624027.png) |
 
 
@@ -141,10 +139,6 @@ XZ Planning 将开发流程标准化为 **六个阶段**：
                                          ↓
                      ┌───────────────────────────────────────────┐
                      │  /xz-planning:xz-review N                  │  可选，代码审查
-                     └───────────────────┬──────────────────────┘
-                                         ↓
-                     ┌───────────────────────────────────────────┐
-                     │  /xz-planning:xz-test N                    │  可选，生成测试指南
                      └───────────────────┬──────────────────────┘
                                          ↓
                           ┌─────────────────────────────────┐
@@ -223,7 +217,7 @@ STATE.md — 全局状态表
 ├── phases/1/  → 版本 1（进行中）
 │   ├── 1-DISCUSS.md
 │   ├── 1-PLAN.md
-│   └── 1-UAT.md
+│   └── 1-TEST-REPORT.md
 └── archive/0/ → 版本 0（已归档）
 ```
 

@@ -1,8 +1,8 @@
 # XZ Planning - 轻量级版本计划驱动开发
 
-init → discuss? → plan → exec ⇄ update-plan? → review? → test? → done
+init → discuss? → plan → exec(含闭环测试) ⇄ update-plan? → review? → done
 
-辅助: status / ref / del / remove-all
+辅助: status / ref / test / del / remove-all
 
 基于 todolist 的开发流程管理工具，通过 Claude Code 插件驱动。
 
@@ -16,9 +16,8 @@ init → discuss? → plan → exec ⇄ update-plan? → review? → test? → d
 | `/xz-planning:xz-discuss N 讨论内容` | PM × Dev 头脑风暴，收敛想法 | 可选 | `/xz-planning:xz-discuss 1 做个客户管理工具` |
 | `/xz-planning:xz-plan N 需求描述` | 创建新版本计划 | ✅ | `/xz-planning:xz-plan 1 实现用户注册登录` |
 | `/xz-planning:xz-update-plan N 操作` | 修改/新增/删除 todolist 条目 | 可选 | `/xz-planning:xz-update-plan 1 修改 #3 增加缓存` |
-| `/xz-planning:xz-exec N` | 执行版本 N 中未完成的 todolist | ✅ | `/xz-planning:xz-exec 1` |
+| `/xz-planning:xz-exec N` | 执行未完成的 todolist + 完成后自动闭环测试 | ✅ | `/xz-planning:xz-exec 1` |
 | `/xz-planning:xz-review N` | 审查版本 N 的代码质量和安全 | 可选 | `/xz-planning:xz-review 1` |
-| `/xz-planning:xz-test N` | 生成版本 N 的手动测试指南 | 可选 | `/xz-planning:xz-test 1` |
 | `/xz-planning:xz-done N` | 归档已完成的版本 | ✅ | `/xz-planning:xz-done 1` |
 
 **辅助工具：**
@@ -47,7 +46,7 @@ init → discuss? → plan → exec ⇄ update-plan? → review? → test? → d
                           └──────────────┬──────────────────┘
                                          ↓
                           ┌─────────────────────────────────┐
-                     ┌──→ │  /xz-planning:xz-exec N          │  必须，逐条执行
+                     ┌──→ │  /xz-planning:xz-exec N          │  必须，逐条执行 + 闭环测试
                      │    └──────────────┬──────────────────┘
                      │                   ↓
                      │    ┌─────────────────────────────────┐
@@ -58,10 +57,6 @@ init → discuss? → plan → exec ⇄ update-plan? → review? → test? → d
                      │  /xz-planning:xz-review N                  │  可选，代码审查
                      └───────────────────┬──────────────────────┘
                                          ↓
-                     ┌───────────────────────────────────────────┐
-                     │  /xz-planning:xz-test N                    │  可选，生成测试指南
-                     └───────────────────┬──────────────────────┘
-                                         ↓
                           ┌─────────────────────────────────┐
                           │  /xz-planning:xz-done N          │  必须，归档
                           └─────────────────────────────────┘
@@ -69,7 +64,7 @@ init → discuss? → plan → exec ⇄ update-plan? → review? → test? → d
 
 **最小流程：** `init → plan → exec → done`
 
-**完整流程：** `init → discuss → plan → exec ⇄ update-plan → review → test → done`
+**完整流程：** `init → discuss → plan → exec(含闭环测试) ⇄ update-plan → review → done`
 
 典型使用示例：
 
@@ -77,12 +72,11 @@ init → discuss? → plan → exec ⇄ update-plan? → review? → test? → d
 0. /xz-planning:xz-init                                              ← 首次
 1. /xz-planning:xz-discuss 1 做一个用户注册登录和JWT鉴权               ← 可选
 2. /xz-planning:xz-plan 1 实现用户注册登录和JWT鉴权
-3. /xz-planning:xz-exec 1
+3. /xz-planning:xz-exec 1                                            ← 执行完自动跑闭环测试
 4. /xz-planning:xz-update-plan 1 新增一条: 添加密码找回功能            ← 可选
 5. /xz-planning:xz-exec 1
 6. /xz-planning:xz-review 1                                          ← 可选
-7. /xz-planning:xz-test 1                                            ← 可选
-8. /xz-planning:xz-done 1
+7. /xz-planning:xz-done 1
 ```
 
 ## 目录结构
@@ -124,7 +118,9 @@ xz-planning/
 ├── phases/
 │   ├── 1.用户注册登录/
 │   │   ├── 1-DISCUSS.md        # 讨论文档（可选）
-│   │   └── 1-PLAN.md           # 版本计划和 todolist
+│   │   ├── 1-PLAN.md           # 版本计划和 todolist（含测试方案）
+│   │   ├── 1-TEST-REPORT.md    # 闭环测试报告（xz-exec 自动产出）
+│   │   └── tests/              # 无测试框架时的临时测试脚本
 │   └── 2.商品管理/
 │       └── 2-PLAN.md
 └── archive/                    # 已归档的版本
@@ -154,6 +150,8 @@ PM × Dev 头脑风暴工具，把粗糙想法收敛为结构化讨论文档。*
 
 生成后先展示草案，你确认后才写入文件。如果版本已存在会拒绝，提示用 `/xz-planning:xz-update-plan`。
 
+确认时可选**手动执行**路径：额外生成 `N-MANUAL.md`（改动地图 + 逐块 `改动 i/n` 进度 + 复制即用的代码块），你自己贴码、掌握代码写到哪儿了；贴完跑 `/xz-planning:xz-exec N` 校验差异并自动闭环验证。
+
 ### /xz-planning:xz-update-plan N 操作描述
 
 修改已有版本的 todolist。支持修改、新增、删除、插入条目。已完成的 `[x]` 条目受锁定保护，不可修改或删除。
@@ -161,6 +159,10 @@ PM × Dev 头脑风暴工具，把粗糙想法收敛为结构化讨论文档。*
 ### /xz-planning:xz-exec N
 
 从第一个未完成的 `[ ]` 条目开始，按 改动详情 逐条执行代码编写/修改。
+
+**todolist 全部完成后自动进入闭环测试**：按 `N-PLAN.md` 的 `## 测试方案` 逐条跑自动化用例（单测/接口/CLI/浏览器），失败就分诊——计划内实现 bug 直接修，用例或环境问题修用例，越界项停下报告；每轮修完**全量回归**，最多 3 轮。每修一处会在终端打印 `文件:行号 + 原因 + 改前/改后`，改了哪儿一目了然。只有真实凭证、线上环境、真机硬件、多端多人、破坏性操作、主观视觉确认这类 AI 客观做不到的事，才会停下来向你索取。结果写入 `N-TEST-REPORT.md`。
+
+**手动执行的版本（`N-MANUAL.md`）走闸门制**：先只读校验你贴的代码 → 把差异汇总成一份清单让你确认一次（默认全部按计划对齐，你可以挑出想保留的写法）→ 确认后就和常规模式一样全自动闭环验证。你选「保持现状」的写法会记进 `## 约束` 受保护，后续修 bug 不会被改回去；你选「跳过、我自己改」的条目 AI 绝不代劳。
 
 ### /xz-planning:xz-done N
 
@@ -173,10 +175,6 @@ PM × Dev 头脑风暴工具，把粗糙想法收敛为结构化讨论文档。*
 ### /xz-planning:xz-review N
 
 审查版本 N 的 todolist 改动。检查符合性、安全、性能、质量。
-
-### /xz-planning:xz-test N
-
-为版本 N 生成手动测试指南，写入 `N-UAT.md`。
 
 ### /xz-planning:xz-ref N 或 /xz-planning:xz-ref N1,N2,N3
 
