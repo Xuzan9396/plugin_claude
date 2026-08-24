@@ -290,7 +290,7 @@ xz-tools.py update-state
 
 然后以纯文本输出下一步选项：
 
-> 计划已更新。下一步: /xz-exec N（继续执行）/ /xz-update-plan N（继续修改）/ /xz-ref N（加载为上下文）
+> 计划已更新。下一步: /xz-exec N（继续执行）/ /xz-update-plan N（继续修改）
 
 **手动路径额外一行（第二步判定是手动路径时必加，放在下一步选项之前）**：
 

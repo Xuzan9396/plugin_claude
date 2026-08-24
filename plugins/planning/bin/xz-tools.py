@@ -206,25 +206,125 @@ def status():
     )
 
 
+def _archive_one(src: Path) -> str:
+    """把单个 phase 目录移入 archive，返回移动描述。同名目标先删再移。"""
+    dst = ARCHIVE_DIR / src.name
+    ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
+    if dst.exists():
+        shutil.rmtree(dst)
+    shutil.move(str(src), str(dst))
+    return f"{src.name} -> archive/{src.name}"
+
+
+def _list_phases():
+    """列出 phases 下的目录，返回 (合法版本目录列表, 被跳过的名字列表)。"""
+    targets, skipped = [], []
+    if not PHASES_DIR.exists():
+        return targets, skipped
+    for d in _sorted_phases(PHASES_DIR):
+        if not d.is_dir() or d.name == "archive":
+            continue
+        ver, _ = _split_dir(d.name)
+        if ver:
+            targets.append(d)
+        else:
+            skipped.append(d.name)
+    return targets, skipped
+
+
+def list_phases():
+    """输出 phases 下全部版本的清单（供 xz-done all 归档前预览）。"""
+    targets, skipped = _list_phases()
+    items = []
+    for d in targets:
+        ver, name = _split_dir(d.name)
+        plan_file = d / f"{ver}-PLAN.md"
+        total = completed = 0
+        status_text = ""
+        if plan_file.exists():
+            content = plan_file.read_text(encoding="utf-8")
+            for m in re.finditer(r"^- \[([ x])\] \d+\.", content, re.MULTILINE):
+                total += 1
+                if m.group(1) == "x":
+                    completed += 1
+            sm = re.search(r"^>\s*状态:\s*(.+)$", content, re.MULTILINE)
+            if sm:
+                status_text = sm.group(1).strip()
+        items.append(
+            {
+                "version": ver,
+                "name": name,
+                "dir_name": d.name,
+                "plan_exists": plan_file.exists(),
+                "total": total,
+                "completed": completed,
+                "progress": f"{completed}/{total}",
+                "status": status_text,
+            }
+        )
+    print(
+        json.dumps(
+            {"ok": True, "count": len(items), "phases": items, "skipped": skipped},
+            ensure_ascii=False,
+        )
+    )
+
+
 def complete(n: str):
-    """将版本 N 移入 archive，更新 STATE.md。"""
+    """将版本 N 移入 archive，更新 STATE.md。N 为 'all' 时归档 phases 下全部版本。"""
+    if n.strip().lower() == "all":
+        complete_all()
+        return
+
     phase = find_phase(n)
     if not phase:
         print(json.dumps({"ok": False, "error": f"版本 {n} 不存在"}))
         return
 
-    src = Path(phase["dir"])
-    dst = ARCHIVE_DIR / src.name
-    ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
+    moved = _archive_one(Path(phase["dir"]))
+    _update_state()
+    print(json.dumps({"ok": True, "moved": moved}, ensure_ascii=False))
 
-    if dst.exists():
-        shutil.rmtree(dst)
-    shutil.move(str(src), str(dst))
 
+def complete_all():
+    """强制归档 phases 下全部版本，不看完成度。"""
+    if not PHASES_DIR.exists():
+        print(
+            json.dumps(
+                {"ok": False, "error": ".xz_planning/phases 目录不存在"},
+                ensure_ascii=False,
+            )
+        )
+        return
+
+    targets, skipped = _list_phases()
+    if not targets:
+        print(
+            json.dumps(
+                {
+                    "ok": True,
+                    "mode": "all",
+                    "count": 0,
+                    "archived": [],
+                    "skipped": skipped,
+                    "note": "phases 下没有可归档的版本目录",
+                },
+                ensure_ascii=False,
+            )
+        )
+        return
+
+    archived = [_archive_one(d) for d in targets]
     _update_state()
     print(
         json.dumps(
-            {"ok": True, "moved": f"{src.name} -> archive/{src.name}"},
+            {
+                "ok": True,
+                "mode": "all",
+                "count": len(archived),
+                "archived": archived,
+                "skipped": skipped,
+            },
             ensure_ascii=False,
         )
     )
@@ -493,8 +593,8 @@ def get_readme():
 def main():
     if len(sys.argv) < 2:
         print("用法: xz-tools.py <command> [args]")
-        print("命令: init, status, parse <N>, complete <N>, delete <N>, update-state, remove-all,")
-        print("      plugin-root, skill-dir <name>, skill-path <name>, get-readme")
+        print("命令: init, status, parse <N>, list-phases, complete <N|all>, delete <N>, update-state,")
+        print("      remove-all, plugin-root, skill-dir <name>, skill-path <name>, get-readme")
         sys.exit(1)
 
     cmd = sys.argv[1]
@@ -506,6 +606,8 @@ def main():
     elif cmd == "parse" and len(sys.argv) >= 3:
         include_archive = "--include-archive" in sys.argv
         parse_plan(sys.argv[2], include_archive=include_archive)
+    elif cmd == "list-phases":
+        list_phases()
     elif cmd == "complete" and len(sys.argv) >= 3:
         complete(sys.argv[2])
     elif cmd == "delete" and len(sys.argv) >= 3:

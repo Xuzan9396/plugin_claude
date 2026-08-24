@@ -13,12 +13,12 @@ init → discuss? → plan → exec(含闭环测试) ⇄ update-plan? → review
 | 命令 | 用途 | 必须 | 示例 |
 |------|------|:----:|------|
 | `/xz-planning:xz-init` | 初始化当前项目的计划目录 | ✅ | `/xz-planning:xz-init` |
-| `/xz-planning:xz-discuss N 讨论内容` | PM × Dev 头脑风暴，收敛想法 | 可选 | `/xz-planning:xz-discuss 1 做个客户管理工具` |
+| `/xz-planning:xz-discuss N 讨论内容` | 澄清需求，比 2-3 个方案给推荐 | 可选 | `/xz-planning:xz-discuss 1 做个客户管理工具` |
 | `/xz-planning:xz-plan N 需求描述` | 创建新版本计划 | ✅ | `/xz-planning:xz-plan 1 实现用户注册登录` |
 | `/xz-planning:xz-update-plan N 操作` | 修改/新增/删除 todolist 条目 | 可选 | `/xz-planning:xz-update-plan 1 修改 #3 增加缓存` |
 | `/xz-planning:xz-exec N` | 执行未完成的 todolist + 完成后自动闭环测试 | ✅ | `/xz-planning:xz-exec 1` |
 | `/xz-planning:xz-review N` | 审查版本 N 的代码质量和安全 | 可选 | `/xz-planning:xz-review 1` |
-| `/xz-planning:xz-done N` | 归档已完成的版本 | ✅ | `/xz-planning:xz-done 1` |
+| `/xz-planning:xz-done N` 或 `all` | 归档版本，`all` 为全部强制归档 | ✅ | `/xz-planning:xz-done 1`、`/xz-planning:xz-done all` |
 
 **辅助工具：**
 
@@ -26,7 +26,7 @@ init → discuss? → plan → exec(含闭环测试) ⇄ update-plan? → review
 |------|------|------|
 | `/xz-planning:xz-status` | 查看所有版本状态总览 | `/xz-planning:xz-status` |
 | `/xz-planning:xz-status N` | 查看版本 N 的详细进度 | `/xz-planning:xz-status 1` |
-| `/xz-planning:xz-ref N` 或 `/xz-planning:xz-ref N1,N2` | 加载计划到上下文供参考 | `/xz-planning:xz-ref 1,2` |
+| `/xz-planning:xz-eli5 内容 [讲给谁]` | 讲人话：按听众水平把东西讲明白 | `/xz-planning:xz-eli5 这个报错 讲给我妈听` |
 | `/xz-planning:xz-del N` | 删除单个版本计划 | `/xz-planning:xz-del 2` |
 | `/xz-planning:xz-remove-all` | 交互式清理全部计划数据 | `/xz-planning:xz-remove-all` |
 
@@ -92,11 +92,7 @@ xz-planning/
 │   ├── xz-plan/SKILL.md
 │   ├── xz-exec/SKILL.md
 │   ├── xz-review/SKILL.md
-│   ├── xz-discuss/
-│   │   ├── SKILL.md
-│   │   ├── visual-companion.md
-│   │   ├── agents/             # skill 内部角色定义
-│   │   └── scripts/            # 可视化服务脚本
+│   ├── xz-discuss/SKILL.md
 │   └── ...（所有 xz-* skills）
 ├── agents/                     # 子代理定义
 │   └── xz-code-reviewer.md
@@ -142,11 +138,15 @@ xz-planning/
 
 ### /xz-planning:xz-discuss N 讨论内容
 
-PM × Dev 头脑风暴工具，把粗糙想法收敛为结构化讨论文档。**不是必须步骤**，可以跳过直接 `/xz-planning:xz-plan`。
+把粗糙想法收敛成一份「做什么」的讨论文档。**不是必须步骤**，可以跳过直接 `/xz-planning:xz-plan`。
 
-输出 `N-DISCUSS.md`，包含：目标用户、核心问题、功能方向（价值/复杂度/MVP 标记）、产品方案、技术边界（Dev 视角）、MVP 收敛（Must/Should/Later）、风险与待确认。
+流程：摸清现状 → 澄清缺口（最多 5 问，一次一个，每问带推荐项）→ 出 2-3 个方案（每个都写清「不做什么」）→ 给推荐 → 确认后写 `N-DISCUSS.md`。
 
-确认后写入文件。后续 `/xz-planning:xz-plan` 会自动引用同目录下的 `N-DISCUSS.md`。
+输出包含：需求重述、澄清结果、方案对比（思路/做什么/不做什么/代价/体量）、风险与待确认（已知/假设/待确认）。
+
+**只答「做什么」**——架构、改哪些文件、怎么测这些「怎么做」的事留给 `/xz-planning:xz-plan`。方案没确认前不写代码、不排 todo。
+
+写完后自己把选定的方案带进 `/xz-planning:xz-plan`（它不会自动读 `N-DISCUSS.md`）。
 
 ### /xz-planning:xz-plan N 需求描述
 
@@ -176,9 +176,12 @@ PM × Dev 头脑风暴工具，把粗糙想法收敛为结构化讨论文档。*
 
 **手动执行的版本（`N-MANUAL.md`）走闸门制**：先只读校验你贴的代码 → 把差异汇总成一份清单让你确认一次（默认全部按计划对齐，你可以挑出想保留的写法）→ 确认后就和常规模式一样全自动闭环验证。你选「保持现状」的写法会记进 `## 约束` 受保护，后续修 bug 不会被改回去；你选「跳过、我自己改」的条目 AI 绝不代劳。
 
-### /xz-planning:xz-done N
+### /xz-planning:xz-done N 或 /xz-planning:xz-done all
 
 归档版本（纯文件操作，不涉及 git）。
+
+- **`N`** — 归档单个版本。要过三道闸门：`待手动执行` 不许归档、`待闭环测试` 需明确确认、有未完成条目会警告并询问是否强制
+- **`all`** — 把 `phases/` 下全部版本强制归档，跳过上面三道闸门。**但会先列出清单让你确认一次**（进度、状态、哪些没做完都摆出来），确认后才移动。`phases/` 下不符合 `N.名称` 格式的目录原样保留不动
 
 ### /xz-planning:xz-status
 
@@ -188,9 +191,11 @@ PM × Dev 头脑风暴工具，把粗糙想法收敛为结构化讨论文档。*
 
 审查版本 N 的 todolist 改动。检查符合性、安全、性能、质量。
 
-### /xz-planning:xz-ref N 或 /xz-planning:xz-ref N1,N2,N3
+### /xz-planning:xz-eli5 内容 [讲给谁听]
 
-加载一个或多个版本的 PLAN.md 到当前对话上下文。
+把任何话题、代码、概念、报错按指定听众的理解水平讲明白。听众可以是年龄档（五岁 / 十岁 / 40 岁往上）、学段（小学五年级 / 大学生 / 研究生）、职场角色（经理 / 工程师 / 产品经理 / 老板）或家里人（老婆 / 爸妈 / 小孩）。不指定就默认按五岁小孩讲。
+
+用户说「讲人话」「掰开揉碎讲讲」「解释给我妈听」这类话时也会自动触发。
 
 ### /xz-planning:xz-del N
 

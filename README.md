@@ -66,18 +66,18 @@ plugin_claude/
     └── planning/                   ← xz-planning 插件
         ├── .claude-plugin/
         │   └── plugin.json         ← 插件清单
-        ├── skills/                 ← 13 个技能
+        ├── skills/                 ← 16 个技能
         │   ├── xz-init/            ← 初始化项目
         │   ├── xz-plan/            ← 创建版本计划
         │   ├── xz-exec/            ← 执行 todolist
-        │   ├── xz-discuss/         ← PM x Dev 双视角讨论
+        │   ├── xz-discuss/         ← 需求讨论（澄清+比方案）
         │   ├── xz-update-plan/     ← 修改计划
         │   ├── xz-review/          ← 代码审查
         │   ├── xz-debug/           ← Bug 诊断（静态分析）
         │   ├── xz-debug-mode/      ← 运行时探针调试模式
         │   ├── xz-status/          ← 查看进度
         │   ├── xz-done/            ← 归档版本
-        │   ├── xz-ref/             ← 加载历史版本
+        │   ├── xz-eli5/            ← 讲人话解释
         │   └── xz-del/             ← 删除版本
         ├── agents/                 ← 子代理
         │   └── xz-code-reviewer.md
@@ -108,11 +108,11 @@ XZ Planning 将开发流程标准化为 **六个阶段**：
 | 阶段 | 命令 | 核心行为 |  |
 |:-----|:-----|:---------|------|
 | 初始化 | `/xz-planning:xz-init` | 扫描项目结构，生成 PROJECT.md 快照 | /xz-init |
-| 需求讨论 | `/xz-planning:xz-discuss 1 需求` | 启动 PM 和 Dev 双代理并行分析，输出 A/B/C 方案<br />/xz-discuss 1 帮我用 Python 写一个命令行 Todo List，支持新增任务、查看任务、标记完成、删除任务，数据保存到本地 JSON 文件 | ![image-20260408010155345](README.assets/image-20260408010155345.png) |
+| 需求讨论 | `/xz-planning:xz-discuss 1 需求` | 澄清关键缺口（最多 5 问，一次一个）→ 出 2-3 个方案带取舍和推荐<br />/xz-discuss 1 帮我用 Python 写一个命令行 Todo List，支持新增任务、查看任务、标记完成、删除任务，数据保存到本地 JSON 文件 | ![image-20260408010155345](README.assets/image-20260408010155345.png) |
 | 制定计划 | `/xz-planning:xz-plan 1 需求` | 分析代码 → 提出方案 → 用户确认 → 生成原子化 todolist | ![image-20260408010515129](README.assets/image-20260408010515129.png)![image-20260408010632280](README.assets/image-20260408010632280.png) |
 | 执行计划 | `/xz-planning:xz-exec 1` | 逐条执行 todo，每条完成后语法检查并更新状态；全部完成后自动跑闭环测试（失败自行修复 + 全量回归），产出 `N-TEST-REPORT.md` | ![image-20260408010709124](README.assets/image-20260408010709124.png) |
 | 代码审查 | `/xz-planning:xz-review 1` | 调用 xz-code-reviewer 代理审查变更 | ![image-20260408012055438](README.assets/image-20260408012055438.png) |
-| 归档 | `/xz-planning:xz-done 1` | 检查完成度，归档到 archive/ 目录 | ![image-20260408012624027](README.assets/image-20260408012624027.png) |
+| 归档 | `/xz-planning:xz-done 1`<br />`/xz-planning:xz-done all` | 检查完成度，归档到 archive/ 目录；`all` 列清单确认后把 phases 下全部强制归档 | ![image-20260408012624027](README.assets/image-20260408012624027.png) |
 
 
 
@@ -152,7 +152,7 @@ XZ Planning 将开发流程标准化为 **六个阶段**：
 |:-----|:-----|
 | `/xz-planning:xz-update-plan N 操作` | 中途增删改 todolist 条目 |
 | `/xz-planning:xz-status` | 查看所有版本进度总览 |
-| `/xz-planning:xz-ref N` 或 `N1,N2,N3` | 加载历史版本作为上下文 |
+| `/xz-planning:xz-eli5 内容 [讲给谁]` | 讲人话：把话题/代码/报错按听众水平讲明白 |
 | `/xz-planning:xz-del N` | 删除单个版本目录 |
 | `/xz-planning:xz-debug 问题描述` | 静态分析：根据现象查 bug 给修复建议 |
 | `/xz-planning:xz-debug-mode 问题描述` | 运行时探针：插日志、收集证据、定位偶发/竞态 bug |
@@ -186,29 +186,25 @@ XZ Planning 将开发流程标准化为 **六个阶段**：
   - 说明: 定义用户实体和构造函数
 ```
 
-**3. 双代理协作 (xz-discuss)**
+**3. 讨论与计划分离 (xz-discuss)**
 
-同时启动两个子代理，模拟产品经理和开发者的视角碰撞：
+借鉴 [obra/superpowers](https://github.com/obra/superpowers) 的 brainstorming 和 [github/spec-kit](https://github.com/github/spec-kit) 的 `/clarify`，把「想清楚」和「怎么做」拆成两步，各管一段：
 
 ```
-        ┌────────────────┐
-        │   用户需求输入   │
-        └───────┬────────┘
-                │
-        ┌───────┴───────┐
-        ▼               ▼
-  ┌──────────┐   ┌──────────┐
-  │ PM Agent │   │Dev Agent │
-  │ 产品视角   │   │ 技术视角  │
-  └─────┬────┘   └────┬─────┘
-        │              │
-        └──────┬───────┘
-               ▼
-        ┌────────────┐
-        │ 综合 A/B/C  │
-        │   方案输出   │
-        └────────────┘
+  ┌─────────────────────────────┐      ┌─────────────────────────────┐
+  │  /xz-discuss  只答「做什么」  │ ───▶ │  /xz-plan  只答「怎么做」    │
+  ├─────────────────────────────┤      ├─────────────────────────────┤
+  │ 澄清缺口（≤5 问，一次一个）   │      │ 技术方案 + 改动详情          │
+  │ 2-3 个方案（含「不做什么」）  │      │ 原子化 todolist              │
+  │ 推荐 + 风险/假设/待确认       │      │ 测试方案                     │
+  └─────────────────────────────┘      └─────────────────────────────┘
+        产出 N-DISCUSS.md                     产出 N-PLAN.md
 ```
+
+两条硬规矩：
+
+- **硬闸门** — 方案没经用户确认，不写代码、不改文件、不排 todo。"这需求太简单不用讨论"是最危险的念头，简单需求恰恰是没被审视的假设最容易造成返工的地方
+- **提问有上限** — 最多 5 问，一次一个，代码里读得到的答案不许拿去问；用户说「够了」随时提前结束
 
 **4. 状态全程可追踪**
 
