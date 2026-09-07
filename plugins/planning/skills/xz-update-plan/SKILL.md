@@ -1,7 +1,7 @@
 ---
 name: xz-update-plan
 description: 修改、新增或删除版本 N 的 todolist 子条目。/xz-update-plan N 操作描述
-disable-model-invocation: false
+disable-model-invocation: true
 argument-hint: "[N] [修改/新增/删除要求]"
 ---
 

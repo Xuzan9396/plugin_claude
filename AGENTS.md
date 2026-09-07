@@ -1,4 +1,2 @@
-加载 CLAUDE.md
-
-同步修改 /Users/admin/go/src/myai/skills/codex
+加载 CLAUDE.md,按照这个要求来
 

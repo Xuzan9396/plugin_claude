@@ -1,7 +1,7 @@
 ---
 name: xz-cases
 description: 为指定版本（区间或离散多个）生成核心功能点改动验收清单，Python 脚本输出 xlsx 到 .xz_planning/cases/xlsx/。/xz-cases 1-1.2 或 /xz-cases 1,1.2
-disable-model-invocation: false
+disable-model-invocation: true
 argument-hint: "[N-M] 或 [N1,N2,...]"
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: xz-plan
 description: 创建新版本计划（目标/上下文/约束/完成标准 + 手动执行）。/xz-plan N 需求描述
-disable-model-invocation: false
+disable-model-invocation: true
 argument-hint: "[N] [需求描述]"
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: xz-review
 description: 审查版本 N 的 todolist 改动是否符合预期，检查安全、性能和质量问题。/xz-review N
-disable-model-invocation: false
+disable-model-invocation: true
 argument-hint: "[N]"
 context: fork
 agent: xz-code-reviewer

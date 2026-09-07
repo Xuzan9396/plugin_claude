@@ -1,7 +1,7 @@
 ---
 name: xz-mmdc
 description: "使用本地 Mermaid CLI mmdc 根据用户的文字描述生成一个 Mermaid flowchart 流程图，并同时生成一份关键链路说明文档。当用户显式输入 /xz-mmdc、要求使用 mmdc、或要求生成/渲染一个流程图时使用。支持 /xz-mmdc <序号> <中文描述/流程需求>，必须把第一个数字参数解析为输出序号。Use when the user explicitly invokes /xz-mmdc, asks to use mmdc, or asks to generate/draw/render one flowchart. Do not use for non-flowchart Mermaid diagrams, multi-diagram batches, or requests that only ask for Mermaid source without rendering. /xz-mmdc N 描述"
-disable-model-invocation: false
+disable-model-invocation: true
 argument-hint: "<序号> <中文描述/流程需求>"
 ---
 

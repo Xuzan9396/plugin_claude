@@ -1,7 +1,7 @@
 ---
 name: xz-manual
 description: 手动执行路径——生成人工改码清单 N-MANUAL.md、跟着计划变更同步清单、以及人工改完后的校验闸门。/xz-manual N [sync]
-disable-model-invocation: false
+disable-model-invocation: true
 argument-hint: "[N] [sync]"
 ---
 
