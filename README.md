@@ -78,6 +78,7 @@ plugin_claude/
         │   ├── xz-status/          ← 查看进度
         │   ├── xz-done/            ← 归档版本
         │   ├── xz-eli5/            ← 讲人话解释
+        │   ├── xz-ref/             ← 引用旧版本计划当参考
         │   └── xz-del/             ← 删除版本
         ├── agents/                 ← 子代理
         │   └── xz-code-reviewer.md
@@ -153,6 +154,7 @@ XZ Planning 将开发流程标准化为 **六个阶段**：
 | `/xz-planning:xz-update-plan N 操作` | 中途增删改 todolist 条目 |
 | `/xz-planning:xz-status` | 查看所有版本进度总览 |
 | `/xz-planning:xz-eli5 内容 [讲给谁]` | 讲人话：把话题/代码/报错按听众水平讲明白 |
+| `/xz-planning:xz-ref N [问题]` | 引用已有版本计划当参考上下文（`phases/` 与 `archive/` 都查），可直接跟一句问题 |
 | `/xz-planning:xz-del N` | 删除单个版本目录 |
 | `/xz-planning:xz-debug 问题描述` | 静态分析：根据现象查 bug 给修复建议 |
 | `/xz-planning:xz-debug-mode 问题描述` | 运行时探针：插日志、收集证据、定位偶发/竞态 bug |
