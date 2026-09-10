@@ -116,13 +116,14 @@ xz-planning/
 │   │   ├── 1-DISCUSS.md        # 讨论文档（可选）
 │   │   ├── 1-PLAN.md           # 版本计划和 todolist（含测试方案）
 │   │   ├── 1-TEST-REPORT.md    # 闭环测试报告（xz-exec 自动产出）
-│   │   └── tests/              # 测试产物，按 T 编号前缀平铺
-│   │       ├── .env.local      # 测试用的连接/凭据（自动加进 .gitignore）
-│   │       ├── T1-req.json     # T1 的请求体
-│   │       ├── T1-resp.json    # T1 的实际响应（已脱敏）
-│   │       ├── T1-run.log      # T1 的运行输出
-│   │       ├── T3-run.sh       # 无测试框架时的可执行脚本
-│   │       └── T3-01-登录成功.png  # 浏览器用例的关键节点截图
+│   │   ├── tests/              # 测试产物，按 T 编号前缀平铺
+│   │   │   ├── .env.local      # 测试用的连接/凭据（自动加进 .gitignore）
+│   │   │   ├── T1-req.json     # T1 的请求体
+│   │   │   ├── T1-resp.json    # T1 的实际响应（已脱敏）
+│   │   │   ├── T1-run.log      # T1 的运行输出
+│   │   │   ├── T3-run.sh       # 无测试框架时的可执行脚本
+│   │   │   └── T3-01-登录成功.png  # 浏览器用例的关键节点截图
+│   │   └── worktree/           # /xz-worktree 的并行现场：<组名>.handoff.json + <组名>.patch（自带 .gitignore，不入库）
 │   └── 2.商品管理/
 │       └── 2-PLAN.md
 └── archive/                    # 已归档的版本

@@ -44,7 +44,7 @@ xz-tools.py parse N --include-archive
 
 **3. 读计划** — 只读 `phase.plan_file` 指向的 `N-PLAN.md` **全文**。多个版本按版本号升序读。
 
-> **只读这一个文件**：同目录的 `N-DISCUSS.md` / `N-TEST-REPORT.md` / `N-REVIEW.md` / `N-UAT.md` 和 `tests/` 一律不读，`tests/.env.local` 更不许碰（里面是明文凭据）。要看那些，用户会另外点名。
+> **只读这一个文件**：同目录的 `N-DISCUSS.md` / `N-TEST-REPORT.md` / `N-REVIEW.md` / `N-UAT.md` 和 `tests/` / `worktree/` 一律不读，`tests/.env.local` 更不许碰（里面是明文凭据），`worktree/*.patch` 是二进制 diff 原文、读了只会烧上下文。要看那些，用户会另外点名。
 
 **4. 输出** — 按下面两个分支之一。
 
