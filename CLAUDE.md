@@ -10,7 +10,7 @@
 |---|---|---|---|
 | **Claude（真源）** | `plugin_claude/plugins/planning/skills/` | `bin/`（xz-tools.py、xz-mmdc-*.sh）、`agents/xz-code-reviewer.md` | GitHub marketplace 插件 |
 | **Codex** | `skills/codex/` | `skills/script/xz-tools.py`、`codex/agents/xz-code-reviewer.toml`、`codex/xz-mmdc/scripts/` | `~/.codex/skills` + `~/.codex/agents` |
-| **Pi** | `pi_skills/` | 复用 `~/.xz_planning/script/xz-tools.py`、`xz-mmdc/scripts/`；+ 外部依赖 npm 包 `xz-pi-subagents`（提供 `xz_subagents_run`，**不由 install.sh 装**，需在 pi 侧自行 `pi install npm:xz-pi-subagents`；没装则 xz-worktree 退化成串行） | `~/.pi/agent/skills` |
+| **Pi** | `pi_skills/` | 复用 `~/.xz_planning/script/xz-tools.py`、`xz-mmdc/scripts/` | `~/.pi/agent/skills` |
 
 `skills/script/xz-tools.py` 是 `plugins/planning/bin/xz-tools.py` 的副本，必须逐字节一致（`tag.sh` 会校验并自动同步）。
 
@@ -65,11 +65,9 @@ Pi 端保留该字段是主动决定，不是因为它生效。现有证据指�
 
 目标：**装再多 skill，没手动调用之前都不吃模型上下文。** 未启用的 skill 连 `description` 都不进 context，模型也无法自行触发；只有手动点名的那一个才加载。
 
-**只有 `xz-debug` 允许模型自动触发，其余 18 个全部禁用。**
+**只有 `xz-debug` 允许模型自动触发，其余 17 个全部禁用。**
 
-判断依据：**带位置编号参数（版本号 N）的 skill 一律不许自动触发。** 模型自行触发时拿不准该用哪个版本号，猜错就会往错误的版本目录里写东西。`xz-plan`、`xz-update-plan`、`xz-exec`、`xz-worktree` 都是因此禁掉的——后两个还会**真的改源码**，误触发的代价比写错计划更大。
-
-`xz-exec` / `xz-worktree` 曾短暂开过自动触发（图省事，它们是最常走的执行入口），2026-09-11 改回禁用。开着时的兜底是 skill 开头先 `parse N`、版本不存在就停，**但那只能拦「版本不存在」，拦不住「猜了另一个确实存在的版本号」**——那种情况会按错误的计划改源码，兜不住，所以不留这个口子。
+判断依据：**带位置编号参数（版本号 N）的 skill 一律不许自动触发。** 模型自行触发时拿不准该用哪个版本号，猜错就会往错误的版本目录里写东西。`xz-plan`、`xz-update-plan`、`xz-exec` 都是因此禁掉的——`xz-exec` 还会**真的改源码**，误触发的代价比写错计划更大。
 
 三端机制不同，但必须表达同一意图：
 
@@ -129,7 +127,6 @@ codex 官方对该字段的说明是「保持 skill 可被 `$skill-name` 显式�
 | 提问方式 | 纯文本提问，并写明「禁用 AskUserQuestion——其弹窗会吞掉同回复中前面的文本」 | 纯文本提问（无该工具，不提它） | 同 Codex |
 | 浏览器自动化 | `/claude-in-chrome` skill + `mcp__claude-in-chrome__*` 工具 | `$chrome` 插件（`chrome@openai-bundled`） | 泛指「浏览器自动化能力」，不绑定具体工具名 |
 | 代码审查子代理 | `agents/xz-code-reviewer.md`（frontmatter 带 `tools:`） | `agents/xz-code-reviewer.toml`（`developer_instructions`） | 无子代理，规则内联 |
-| 并行子 agent（xz-worktree 用） | 同一条回复里并行发多个 Agent 工具调用（结果直接回主会话） | 按本端子代理能力一次起多个；**起不了并行就退化成串行逐组做**，worktree 与 patch 流程不变（开头明说一句） | `xz_subagents_run`（xz-pi-subagents 扩展），`mode:"write"`、`operation:"implement"`、`concurrency` 取组数；**不用它自带的 `isolation:"worktree"`**，路径由 `xz-tools.py wt create` 给；**等全批返回，拿不到逐个完成通知 → 退化成全批返回后逐组收口**；工具没装则退化成串行 |
 | mmdc 渲染脚本 | 裸命令 `xz-mmdc-render.sh`、`xz-mmdc-path.sh`（`bin/` 在 PATH） | 全路径 `~/.codex/skills/xz-mmdc/scripts/render-flowchart.sh`、`make-output-path.sh` | 全路径 `~/.pi/agent/skills/xz-mmdc/scripts/...` |
 | mmdc 触发词 | `/xz-mmdc` | `$mmdc`、`mmdc` | `/skill:xz-mmdc`、`mmdc` |
 

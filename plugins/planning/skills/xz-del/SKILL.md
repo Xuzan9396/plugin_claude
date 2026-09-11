@@ -40,29 +40,18 @@ xz-tools.py parse $ARGUMENTS
 - 版本号和需求名
 - todolist 完成进度
 - 涉及的文件列表
-- **worktree 现场**：读 `phases/N.xxx/worktree/*.handoff.json`，逐组列 组名 / `integration` / `worktree_path` / `branch`（无则写「无」）
 
 ### 第三步：确认删除
 
 以纯文本提问确认删除（禁用 AskUserQuestion，其弹窗会吞掉同回复中前面的版本信息文本）：
 
-> 即将永久删除版本 N: {需求名}（{完成进度}）。此操作不可恢复。删除会同时丢掉 worktree 记录，届时 `wt clean` 再也定位不到现场（worktree 目录和 `xz-worktree/*` 分支会永久留在 git 里）。回复：
+> 即将永久删除版本 N: {需求名}（{完成进度}）。此操作不可恢复。回复：
 >   1) 确认删除 — 永久删除该版本的全部计划文件
 >   2) 取消 — 保留当前计划
 
 回复「取消」则停止操作；「确认删除」进入第四步；其他输入按内容响应。
 
 ### 第四步：执行删除
-
-**先收 worktree 现场**：第二步读到 handoff 记录（有任何 `*.handoff.json`）就先跑
-
-```bash
-xz-tools.py wt clean $ARGUMENTS
-```
-
-收掉 worktree 与临时分支；失败就把错误原样转给用户、**先不删目录**（删了记录就再也定位不到现场）。
-
-现场收干净（或本来就没有 handoff）后再删：
 
 ```bash
 xz-tools.py delete $ARGUMENTS
