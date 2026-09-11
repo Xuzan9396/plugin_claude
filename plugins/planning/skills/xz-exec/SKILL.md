@@ -1,7 +1,7 @@
 ---
 name: xz-exec
 description: 执行版本 N 中未完成的 todolist。/xz-exec N
-disable-model-invocation: false
+disable-model-invocation: true
 argument-hint: "[N]"
 ---
 

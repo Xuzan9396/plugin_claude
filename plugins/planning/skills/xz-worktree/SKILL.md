@@ -1,7 +1,7 @@
 ---
 name: xz-worktree
 description: 把版本 N 未完成的 todo 自动分组，多个 git worktree 并行开发后合并回主工作区。/xz-worktree N
-disable-model-invocation: false
+disable-model-invocation: true
 argument-hint: "[N]"
 ---
 
