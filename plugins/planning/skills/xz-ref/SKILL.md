@@ -1,6 +1,6 @@
 ---
 name: xz-ref
-description: 引用已有版本计划作为参考上下文（只读，phases/ 与 archive/ 两个目录都查）。可在版本号后跟一句问题。/xz-ref N 或 /xz-ref N 你的问题
+description: 引用已有版本计划作为参考上下文（只读，phases/ 与 archive/ 两个目录都查）。可在版本号后跟一句问题。/xz-planning:xz-ref N 或 /xz-planning:xz-ref N 你的问题
 disable-model-invocation: true
 argument-hint: "[N] 或 [N-M] / [N1,N2] [可选问题]"
 ---
@@ -9,11 +9,11 @@ argument-hint: "[N] 或 [N-M] / [N1,N2] [可选问题]"
 
 参数 `$ARGUMENTS`：**第一个空格前**是版本表达式，其后全部是**可选问题**。
 
-- `/xz-ref 1.2` → 引用版本 1.2，输出摘要
-- `/xz-ref 1.2 软删除当时为什么没用布尔列` → 引用后直接回答这个问题
-- `/xz-ref 1,1.2` / `/xz-ref 1-1.2` → 一次引用多个
+- `/xz-planning:xz-ref 1.2` → 引用版本 1.2，输出摘要
+- `/xz-planning:xz-ref 1.2 软删除当时为什么没用布尔列` → 引用后直接回答这个问题
+- `/xz-planning:xz-ref 1,1.2` / `/xz-planning:xz-ref 1-1.2` → 一次引用多个
 
-为空 → 停止，提示 `用法: /xz-ref N [问题]`。**版本表达式内不许有空格**：写成 `1, 1.2` 会把 `1.2` 当成问题，遇到第一个 token 以 `,` 或 `-` 结尾就停下，提示改写成 `1,1.2`。
+为空 → 停止，提示 `用法: /xz-planning:xz-ref N [问题]`。**版本表达式内不许有空格**：写成 `1, 1.2` 会把 `1.2` 当成问题，遇到第一个 token 以 `,` 或 `-` 结尾就停下，提示改写成 `1,1.2`。
 
 **脚本**：`xz-tools.py`（`bin/` 已在 PATH，直接调用，在当前目录操作 `.xz_planning/`）。
 
@@ -26,7 +26,7 @@ argument-hint: "[N] 或 [N-M] / [N1,N2] [可选问题]"
 | 目录 | 什么时候在这儿 | 摘要里标 |
 |---|---|---|
 | `.xz_planning/phases/N.中文名/` | 还没归档（待执行 / 进行中 / 待闭环测试 / 待手动执行） | `活跃` |
-| `.xz_planning/archive/N.中文名/` | 已经跑过 `/xz-done N` 归档 | `归档` |
+| `.xz_planning/archive/N.中文名/` | 已经跑过 `/xz-planning:xz-done N` 归档 | `归档` |
 
 实现只有一条命令：
 
@@ -56,7 +56,7 @@ xz-tools.py parse N --include-archive
 
 允许：`Read`、`Grep`、`Glob`，以及只读的 `xz-tools.py parse` / `status`。
 
-**用户在本次调用中改口说「那按 1.2 的做法改一下」→ 停下**，告诉他：参考已经载入，写计划请用 `/xz-plan`、改计划用 `/xz-update-plan`、直接改码用 `/xz-exec`，本 skill 不动手。
+**用户在本次调用中改口说「那按 1.2 的做法改一下」→ 停下**，告诉他：参考已经载入，写计划请用 `/xz-planning:xz-plan`、改计划用 `/xz-planning:xz-update-plan`、直接改码用 `/xz-planning:xz-exec`，本 skill 不动手。
 
 ## 输出分支 A：没跟问题 → 摘要待命
 
@@ -82,15 +82,15 @@ xz-tools.py parse N --include-archive
 
 1. **第一句就是结论**，不铺垫、不复述问题。
 2. **标明依据在 PLAN 的哪一段**（如 `（依据 1.2-PLAN.md 技术方案）`），方便用户回查。
-3. **PLAN 里没写就说没写** —— 不猜，也不拿当前代码现状顶替 PLAN 原文。真要看代码现状，提醒用户那是 `/xz-ask` 的事。
+3. **PLAN 里没写就说没写** —— 不猜，也不拿当前代码现状顶替 PLAN 原文。真要看代码现状，提醒用户那是 `/xz-planning:xz-ask` 的事。
 4. 问题有歧义先追问一句，纯文本问 —— **禁用 AskUserQuestion，它的弹窗会吞掉同一条回复里前面的文本。**
 
 ## 异常处理
 
 | 情况 | 怎么办 |
 |---|---|
-| 无 `.xz_planning/` | 停止，提示 `请先执行 /xz-init` |
-| `parse` 返回 `ok:false`（版本不存在） | 提示跑 `/xz-status` 看有哪些版本 |
+| 无 `.xz_planning/` | 停止，提示 `请先执行 /xz-planning:xz-init` |
+| `parse` 返回 `ok:false`（版本不存在） | 提示跑 `/xz-planning:xz-status` 看有哪些版本 |
 | 离散多个里某个不存在 | 记一句「跳过 N（不存在）」继续，**全都不存在**才停止 |
 | 目录在但无 `N-PLAN.md` | 跳过并说明「版本 N 只有讨论稿、还没生成计划」（`parse` 会返回 `plan_exists:false`） |
 
@@ -98,4 +98,4 @@ xz-tools.py parse N --include-archive
 
 摘要或回答之后以纯文本收尾：
 
-> 下一步: 照着这份参考写新计划 `/xz-plan N 需求` / 改现有计划 `/xz-update-plan N 操作` / 继续问我关于版本 1.2 的事
+> 下一步: 照着这份参考写新计划 `/xz-planning:xz-plan N 需求` / 改现有计划 `/xz-planning:xz-update-plan N 操作` / 继续问我关于版本 1.2 的事

@@ -1,6 +1,6 @@
 ---
 name: xz-discuss
-description: 需求想清楚再动手——澄清关键缺口、比 2-3 个方案、给推荐，产出 N-DISCUSS.md。/xz-discuss N 讨论内容
+description: 需求想清楚再动手——澄清关键缺口、比 2-3 个方案、给推荐，产出 N-DISCUSS.md。/xz-planning:xz-discuss N 讨论内容
 disable-model-invocation: true
 argument-hint: "[N] [讨论内容]"
 ---
@@ -9,14 +9,14 @@ argument-hint: "[N] [讨论内容]"
 
 参数: `$ARGUMENTS`（第一个空格前是版本号 N，之后是讨论主题）
 
-**这一步只回答「做什么」，不回答「怎么做」。** 架构怎么搭、改哪些文件、函数怎么写、怎么测，全是 `/xz-plan` 的活儿，本 skill 一个字都不碰。
+**这一步只回答「做什么」，不回答「怎么做」。** 架构怎么搭、改哪些文件、函数怎么写、怎么测，全是 `/xz-planning:xz-plan` 的活儿，本 skill 一个字都不碰。
 
 ### 参数校验
 
 `$ARGUMENTS` 为空 / N 非合法版本号（正整数，或小数如 1.5）/ 主题为空 → **立即停止**：
 
-> 用法: `/xz-discuss N 讨论内容`
-> 示例: `/xz-discuss 1 做一个给自由职业者用的客户管理工具`
+> 用法: `/xz-planning:xz-discuss N 讨论内容`
+> 示例: `/xz-planning:xz-discuss 1 做一个给自由职业者用的客户管理工具`
 
 **辅助脚本**：`xz-tools.py`（插件启用时 `bin/` 自动加入 PATH，裸命令调用即可）。脚本在**当前工作目录**下操作 `.xz_planning/`。
 
@@ -34,7 +34,7 @@ argument-hint: "[N] [讨论内容]"
 
 ## 第一步：前置检查
 
-无 `.xz_planning/` → 停止，提示 `/xz-init`。
+无 `.xz_planning/` → 停止，提示 `/xz-planning:xz-init`。
 
 ```bash
 xz-tools.py parse N
@@ -52,7 +52,7 @@ xz-tools.py parse N
 
 ## 第三步：范围闸门
 
-需求横跨**多个互不依赖的子系统**（如"做个平台，有聊天、文件存储、计费、分析"）→ **立即停下**，给出拆分建议，每块各走一次 `/xz-discuss`。
+需求横跨**多个互不依赖的子系统**（如"做个平台，有聊天、文件存储、计费、分析"）→ **立即停下**，给出拆分建议，每块各走一次 `/xz-planning:xz-discuss`。
 
 **不要在拆分前深入细节。**
 
@@ -175,10 +175,10 @@ xz-tools.py update-state
 
 ```
 讨论已写入: .xz_planning/phases/N.xxx/N-DISCUSS.md
-下一步: /xz-plan N 需求描述
+下一步: /xz-planning:xz-plan N 需求描述
 ```
 
-> `/xz-plan` 不会自动读 N-DISCUSS.md——创建计划时把选定的方案在需求描述里说一句，或者先让 AI 读一下这个文件。
+> `/xz-planning:xz-plan` 不会自动读 N-DISCUSS.md——创建计划时把选定的方案在需求描述里说一句，或者先让 AI 读一下这个文件。
 
 ---
 
@@ -187,7 +187,7 @@ xz-tools.py update-state
 | # | 红线 | 什么算违规 |
 |---|------|-----------|
 | 1 | 先出方案、再确认、后落盘 | 草案没展示就写文件；没等明确确认就写 |
-| 2 | 只答「做什么」 | 写了架构设计、组件划分、数据流、改哪些文件、怎么测——那全是 `/xz-plan` 的 |
+| 2 | 只答「做什么」 | 写了架构设计、组件划分、数据流、改哪些文件、怎么测——那全是 `/xz-planning:xz-plan` 的 |
 | 3 | 一次一问、不超 5 个 | 一口气抛多个问题；为凑数硬问满 5 个；第二步扫代码能读到的还拿去问 |
 | 4 | 至少 2 个方案、有实质差异 | 只给一个方案；两个方案是同一个东西换说法；没写「不做什么」 |
 | 5 | 推荐明确且在 A 位 | 没标推荐 / 没给理由 / 推荐的不是 A |

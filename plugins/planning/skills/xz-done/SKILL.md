@@ -1,6 +1,6 @@
 ---
 name: xz-done
-description: 归档版本计划（纯文件操作，不执行 git）。/xz-done N 归档单个版本，/xz-done all 把 phases 下全部版本强制归档。
+description: 归档版本计划（纯文件操作，不执行 git）。/xz-planning:xz-done N 归档单个版本，/xz-planning:xz-done all 把 phases 下全部版本强制归档。
 disable-model-invocation: true
 argument-hint: "[N] 或 all"
 ---
@@ -21,8 +21,8 @@ argument-hint: "[N] 或 all"
 
 `$ARGUMENTS` 为空 → **立即停止**：
 
-> 缺少参数。用法: `/xz-done N`（归档单个版本）或 `/xz-done all`（全部强制归档）
-> 示例: `/xz-done 1`、`/xz-done 1.5`、`/xz-done all`
+> 缺少参数。用法: `/xz-planning:xz-done N`（归档单个版本）或 `/xz-planning:xz-done all`（全部强制归档）
+> 示例: `/xz-planning:xz-done 1`、`/xz-planning:xz-done 1.5`、`/xz-planning:xz-done all`
 
 按参数分两条路径走：
 
@@ -34,7 +34,7 @@ argument-hint: "[N] 或 all"
 
 ---
 
-# A 路径：单版本归档 `/xz-done N`
+# A 路径：单版本归档 `/xz-planning:xz-done N`
 
 ### 第一步：检查状态
 
@@ -48,8 +48,8 @@ xz-tools.py parse $ARGUMENTS
 
 | 状态 | 处理 |
 |------|------|
-| `待手动执行` | **不许归档**，提示「这个版本走手动路径，代码还没贴完。先跑 `/xz-manual N` 生成清单并贴码校验」 |
-| `待闭环测试` | **不许直接归档**，提示「`/xz-manual` 校验已过，但闭环测试还没跑。先跑 `/xz-exec N`，它会直接做闭环验证」。用户坚持要跳过测试归档 → 让他明确回一句「确认跳过闭环测试归档」才放行，并在归档记录里留痕 |
+| `待手动执行` | **不许归档**，提示「这个版本走手动路径，代码还没贴完。先跑 `/xz-planning:xz-manual N` 生成清单并贴码校验」 |
+| `待闭环测试` | **不许直接归档**，提示「`/xz-planning:xz-manual` 校验已过，但闭环测试还没跑。先跑 `/xz-planning:xz-exec N`，它会直接做闭环验证」。用户坚持要跳过测试归档 → 让他明确回一句「确认跳过闭环测试归档」才放行，并在归档记录里留痕 |
 | 其他 | 正常进第二步 |
 
 ### 第二步：判断是否可归档
@@ -59,7 +59,7 @@ xz-tools.py parse $ARGUMENTS
 
   > 版本 N 还有 X 条未完成任务。回复：
   >   1) 强制归档 — 忽略未完成条目，直接归档
-  >   2) 返回继续执行 — 执行 /xz-exec N 完成剩余任务
+  >   2) 返回继续执行 — 执行 /xz-planning:xz-exec N 完成剩余任务
 
   回复「返回继续执行」则停止归档；「强制归档」则继续；其他输入按内容响应。
 
@@ -95,11 +95,11 @@ xz-tools.py complete $ARGUMENTS
 
 然后以纯文本输出下一步选项：
 
-> 版本 N 已归档。下一步: /xz-status（查看所有版本状态）/ /xz-plan N（创建新版本计划）
+> 版本 N 已归档。下一步: /xz-planning:xz-status（查看所有版本状态）/ /xz-planning:xz-plan N（创建新版本计划）
 
 ---
 
-# B 路径：全量强制归档 `/xz-done all`
+# B 路径：全量强制归档 `/xz-planning:xz-done all`
 
 **「强制」的含义**：跳过 A 路径的三道闸门（`待手动执行`、`待闭环测试`、有未完成条目），`phases/` 下**所有**版本一律归档。
 
@@ -147,7 +147,7 @@ date "+%Y-%m-%d %H:%M:%S"
 **移动目录之前**，对清单里**每一个**版本的 `N-PLAN.md` 都追加变更记录并更新 `> 最后更新:`：
 
 ```
-- YYYY-MM-DD HH:mm:ss 归档完成（/xz-done all 批量强制归档）
+- YYYY-MM-DD HH:mm:ss 归档完成（/xz-planning:xz-done all 批量强制归档）
 ```
 
 没有 `N-PLAN.md` 的目录（`plan_exists` 为 false）跳过这步，不报错。
@@ -175,7 +175,7 @@ phases/ 已清空。
 
 然后：
 
-> 下一步: /xz-status（查看所有版本状态）/ /xz-plan 1 需求描述（开新版本）
+> 下一步: /xz-planning:xz-status（查看所有版本状态）/ /xz-planning:xz-plan 1 需求描述（开新版本）
 
 ---
 

@@ -73,7 +73,7 @@ Pi 端保留该字段是主动决定，不是因为它生效。现有证据指�
 
 | 端 | 开关 | 手动调用 |
 |---|---|---|
-| Claude | `SKILL.md` 里 `disable-model-invocation: true` | `/xz-plan` |
+| Claude | `SKILL.md` 里 `disable-model-invocation: true` | `/xz-planning:xz-plan` |
 | Pi | `SKILL.md` 里 `disable-model-invocation: true` | `/skill:xz-plan` |
 | Codex | **`agents/openai.yaml` 里 `policy.allow_implicit_invocation: false`** | `$xz-plan` |
 
@@ -103,7 +103,7 @@ codex 官方对该字段的说明是「保持 skill 可被 `$skill-name` 显式�
 
 1. 目录名 = `name` = 调用名，三者一致，只用小写字母、数字、连字符。
 2. frontmatter 不许超出上表，宁可少写不许瞎写。**Codex 端只允许 `name`、`description`、`disable-model-invocation`；Pi 端在此之上多一个 `argument-hint`。** 闸门按这个白名单卡死。
-3. **带位置参数**的 skill（xz-plan、xz-exec 等，参数是版本号 N），`description` 末尾必须写本端调用式（`/xz-plan N 需求` / `$xz-plan N 需求` / `/skill:xz-plan N 需求`）。纯语义触发、无位置参数的（xz-debug、xz-debug-mode、xz-cdp-cli）不强制。xz-mmdc 按方言表用 `$mmdc` / `mmdc`，不是 `$xz-mmdc`。
+3. **带位置参数**的 skill（xz-plan、xz-exec 等，参数是版本号 N），`description` 末尾必须写本端调用式（`/xz-planning:xz-plan N 需求` / `$xz-plan N 需求` / `/skill:xz-plan N 需求`）。纯语义触发、无位置参数的（xz-debug、xz-debug-mode、xz-cdp-cli）不强制。xz-mmdc 按方言表用 `$mmdc` / `mmdc`，不是 `$xz-mmdc`。
 4. 附属文件（`scripts/`、`examples/`、`agents/`）同样要按方言表转写。`agents/openai.yaml` 是 Codex 专属规范（承载自动触发开关），**只许出现在 `skills/codex/` 下**；Pi 端不认这个格式，`pi_skills/` 下不许有 `agents/`。
 5. 三端 skill 目录名单必须完全一致。
 6. skill 里调用 `xz-tools.py` 的子命令，如果依赖 `_get_plugin_root()` 下的资源文件（`resources/`、`skills/`），必须确认 `install.sh` 的 `install_global_files()` 把那些资源也装进了 `~/.xz_planning/`——Claude 端跑得通不代表另两端跑得通，它们的 root 是 `~/.xz_planning/` 而非 `plugins/planning/`。
@@ -118,7 +118,7 @@ codex 官方对该字段的说明是「保持 skill 可被 `$skill-name` 显式�
 
 | 维度 | Claude | Codex | Pi |
 |---|---|---|---|
-| 调用前缀 | `/xz-plan 1 需求` | `$xz-plan 1 需求` | `/skill:xz-plan 1 需求` |
+| 调用前缀 | `/xz-planning:xz-plan 1 需求`（**插件名前缀不能省**，见下） | `$xz-plan 1 需求` | `/skill:xz-plan 1 需求` |
 | 参数占位 | `$ARGUMENTS` | `$ARGUMENTS` | `<调用参数>` |
 | 首个参数 | `$0` | `$0` | `<第一个参数>` |
 | 参数约定说明 | 无 | 无 | H1 下方必须有 `> Pi 参数约定：…` 引用块 |
@@ -128,7 +128,17 @@ codex 官方对该字段的说明是「保持 skill 可被 `$skill-name` 显式�
 | 浏览器自动化 | `/claude-in-chrome` skill + `mcp__claude-in-chrome__*` 工具 | `$chrome` 插件（`chrome@openai-bundled`） | 泛指「浏览器自动化能力」，不绑定具体工具名 |
 | 代码审查子代理 | `agents/xz-code-reviewer.md`（frontmatter 带 `tools:`） | `agents/xz-code-reviewer.toml`（`developer_instructions`） | 无子代理，规则内联 |
 | mmdc 渲染脚本 | 裸命令 `xz-mmdc-render.sh`、`xz-mmdc-path.sh`（`bin/` 在 PATH） | 全路径 `~/.codex/skills/xz-mmdc/scripts/render-flowchart.sh`、`make-output-path.sh` | 全路径 `~/.pi/agent/skills/xz-mmdc/scripts/...` |
-| mmdc 触发词 | `/xz-mmdc` | `$mmdc`、`mmdc` | `/skill:xz-mmdc`、`mmdc` |
+| mmdc 触发词 | `/xz-planning:xz-mmdc` | `$mmdc`、`mmdc` | `/skill:xz-mmdc`、`mmdc` |
+
+#### Claude 端为什么必须带 `xz-planning:` 前缀
+
+Claude 端是**以 marketplace 插件**分发的（`xz-planning@xz-tools`），Claude Code 给插件提供的 skill 一律加插件名前缀：真实调用名是 `xz-planning:xz-exec`，不是 `xz-exec`。
+
+用户打 `/xz-exec 1` 匹配不到任何命令，会被当成普通文本发给模型；而这些 skill 都是 `disable-model-invocation: true`，连 `description` 都不在上下文里，模型既看不到这个 skill 也无法自行加载，只能答非所问（实际踩过：表现为模型说自己没有自动执行的权限）。
+
+所以 Claude 端 `SKILL.md` 里**每一处**面向用户的调用式都要写全名——包括 `description` 末尾、正文里的「请先执行 …」「用法: …」「下一步: …」。闸门会扫裸 `/xz-` 并拦下。
+
+Codex 和 Pi 不走插件分发（`install.sh` 直接拷目录），没有前缀这回事，保持 `$xz-exec` / `/skill:xz-exec`。
 
 ### 改完必做
 

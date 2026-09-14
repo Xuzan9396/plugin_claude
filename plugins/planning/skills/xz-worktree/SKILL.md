@@ -1,6 +1,6 @@
 ---
 name: xz-worktree
-description: 管理并行开发用的 Git worktree——创建（含复刻忽略文件）、查看、合并回主分支、删除。/xz-worktree <名称> | list | status <名称> | merge <名称> | rm <名称>
+description: 管理并行开发用的 Git worktree——创建（含复刻忽略文件）、查看、合并回主分支、删除。/xz-planning:xz-worktree <名称> | list | status <名称> | merge <名称> | rm <名称>
 disable-model-invocation: true
 argument-hint: "<名称> | list | status <名称> | merge <名称> | rm <名称>"
 ---
@@ -19,7 +19,7 @@ argument-hint: "<名称> | list | status <名称> | merge <名称> | rm <名称>
 | `merge <名称>` | 合并回基础分支 |
 | `rm <名称>` | 删除工作区和它的分支 |
 
-`$ARGUMENTS` 为空 → 停止，提示 `用法: /xz-worktree <名称> | list | status <名称> | merge <名称> | rm <名称>`。
+`$ARGUMENTS` 为空 → 停止，提示 `用法: /xz-planning:xz-worktree <名称> | list | status <名称> | merge <名称> | rm <名称>`。
 
 ---
 
@@ -33,7 +33,7 @@ argument-hint: "<名称> | list | status <名称> | merge <名称> | rm <名称>
 
 ## 前置检查
 
-任何动作之前，配置必须存在。脚本返回 `未找到 .xz_planning/worktree/setting.json` → 停止，提示 `请先执行 /xz-worktree-init`。
+任何动作之前，配置必须存在。脚本返回 `未找到 .xz_planning/worktree/setting.json` → 停止，提示 `请先执行 /xz-planning:xz-worktree-init`。
 
 ---
 
@@ -190,7 +190,7 @@ rebase 遇到冲突，主仓库未受影响。
   cd ../.xz_worktrees/myrepo-feat-api
   # 解决冲突后 git rebase --continue（放弃则 git rebase --abort）
 
-处理完重跑 /xz-worktree merge feat-api
+处理完重跑 /xz-planning:xz-worktree merge feat-api
 ```
 
 **合并失败：** 主仓库已自动回到合并前的状态，转述 `detail` 和 `hint`。
@@ -211,7 +211,7 @@ xz-tools.py wt-remove <名称>
   有 2 个提交尚未合并到 main
   有 1 个未跟踪文件会被删掉：?? notes.md
 
-  1) 先合并：/xz-worktree merge feat-api
+  1) 先合并：/xz-planning:xz-worktree merge feat-api
   2) 确实不要了，强制删除（这些内容会永久丢失）
 ```
 

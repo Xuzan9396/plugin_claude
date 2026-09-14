@@ -1,6 +1,6 @@
 ---
 name: xz-review
-description: 审查版本 N 的 todolist 改动是否符合预期，检查安全、性能和质量问题。/xz-review N
+description: 审查版本 N 的 todolist 改动是否符合预期，检查安全、性能和质量问题。/xz-planning:xz-review N
 disable-model-invocation: true
 argument-hint: "[N]"
 context: fork
@@ -15,8 +15,8 @@ agent: xz-code-reviewer
 
 如果 `$ARGUMENTS` 为空或不是合法版本号（正整数，或小数如 1.5），**立即停止**，提示：
 
-> 缺少版本号。用法: `/xz-review N`
-> 示例: `/xz-review 1`
+> 缺少版本号。用法: `/xz-planning:xz-review N`
+> 示例: `/xz-planning:xz-review 1`
 
 **只审查版本 N 的 PLAN.md 中 todolist 涉及的改动，其他无关文件不管。**
 
@@ -168,15 +168,15 @@ A [严重] 文件路径:行号 — 一句话问题描述
 
 ```
 下一步:
-  /xz-done N    ← 归档版本
+  /xz-planning:xz-done N    ← 归档版本
 ```
 
 **有问题需修复时输出：**
 
 ```
 下一步:
-  /xz-exec N              ← 继续执行修复
-  /xz-update-plan N ...   ← 新增修复条目到 todolist
+  /xz-planning:xz-exec N              ← 继续执行修复
+  /xz-planning:xz-update-plan N ...   ← 新增修复条目到 todolist
 ```
 
 #### 6. 写入审查报告文件

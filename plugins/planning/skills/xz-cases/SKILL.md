@@ -1,6 +1,6 @@
 ---
 name: xz-cases
-description: 为指定版本（区间或离散多个）生成核心功能点改动验收清单，Python 脚本输出 xlsx 到 .xz_planning/cases/xlsx/。/xz-cases 1-1.2 或 /xz-cases 1,1.2
+description: 为指定版本（区间或离散多个）生成核心功能点改动验收清单，Python 脚本输出 xlsx 到 .xz_planning/cases/xlsx/。/xz-planning:xz-cases 1-1.2 或 /xz-planning:xz-cases 1,1.2
 disable-model-invocation: true
 argument-hint: "[N-M] 或 [N1,N2,...]"
 ---
@@ -9,8 +9,8 @@ argument-hint: "[N-M] 或 [N1,N2,...]"
 
 参数 `$ARGUMENTS`。为空则**立即停止**，提示：
 
-> 缺少版本号。用法: `/xz-cases N-M`（区间）或 `/xz-cases N1,N2,...`（离散）
-> 示例: `/xz-cases 1-1.2`、`/xz-cases 1,1.2`、`/xz-cases 1`
+> 缺少版本号。用法: `/xz-planning:xz-cases N-M`（区间）或 `/xz-planning:xz-cases N1,N2,...`（离散）
+> 示例: `/xz-planning:xz-cases 1-1.2`、`/xz-planning:xz-cases 1,1.2`、`/xz-planning:xz-cases 1`
 
 **脚本**：`xz-tools.py`（`bin/` 已在 PATH，直接调用，在当前目录操作 `.xz_planning/`）。
 
@@ -20,7 +20,7 @@ argument-hint: "[N-M] 或 [N1,N2,...]"
 
 **1. 解析版本表达式** — 按逗号拆 token：`A-B` 区间纳入所有 A ≤ v ≤ B 的现存版本（`1-1.2` 命中 `1`/`1.1`/`1.2`）；`A` 单个只精确命中（`1,1.2` 不带上 `1.1`）。取并集去重、按**数值**升序（`1 < 1.1 < 1.2 < 1.5 < 2 < 10`）。
 
-**2. 过滤现存版本** — `xz-tools.py status` 拿 `active` + `archived` 版本号套表达式过滤。区间命中 0 个 → 停止；离散里某个不存在 → 记「跳过」继续；全都不存在 → 停止，提示先 `/xz-plan`。
+**2. 过滤现存版本** — `xz-tools.py status` 拿 `active` + `archived` 版本号套表达式过滤。区间命中 0 个 → 停止；离散里某个不存在 → 记「跳过」继续；全都不存在 → 停止，提示先 `/xz-planning:xz-plan`。
 
 **3. 逐版本加载** — 每个版本跑 `xz-tools.py parse N --include-archive`，**按版本号升序**读：`N-PLAN.md` 全文（需求/技术方案/todolist）、同目录的 `N-DISCUSS.md` 与 `N-UAT.md`、以及已完成 `[x]` 条目涉及的**实际代码文件**。
 
@@ -198,4 +198,4 @@ if __name__ == "__main__":
 
 > 测试用例已生成:
 >   .xz_planning/cases/xlsx/{文件名}.xlsx（给测试人员，含改动详细说明 + 测试结果/备注列）
-> 下一步: /xz-done N（归档版本）
+> 下一步: /xz-planning:xz-done N（归档版本）

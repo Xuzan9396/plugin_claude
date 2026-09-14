@@ -1,6 +1,6 @@
 ---
 name: xz-mmdc
-description: "使用本地 Mermaid CLI mmdc 根据用户的文字描述生成一个 Mermaid flowchart 流程图，并同时生成一份关键链路说明文档。当用户显式输入 /xz-mmdc、要求使用 mmdc、或要求生成/渲染一个流程图时使用。支持 /xz-mmdc <序号> <中文描述/流程需求>，必须把第一个数字参数解析为输出序号。Use when the user explicitly invokes /xz-mmdc, asks to use mmdc, or asks to generate/draw/render one flowchart. Do not use for non-flowchart Mermaid diagrams, multi-diagram batches, or requests that only ask for Mermaid source without rendering. /xz-mmdc N 描述"
+description: "使用本地 Mermaid CLI mmdc 根据用户的文字描述生成一个 Mermaid flowchart 流程图，并同时生成一份关键链路说明文档。当用户显式输入 /xz-planning:xz-mmdc、要求使用 mmdc、或要求生成/渲染一个流程图时使用。支持 /xz-planning:xz-mmdc <序号> <中文描述/流程需求>，必须把第一个数字参数解析为输出序号。Use when the user explicitly invokes /xz-planning:xz-mmdc, asks to use mmdc, or asks to generate/draw/render one flowchart. Do not use for non-flowchart Mermaid diagrams, multi-diagram batches, or requests that only ask for Mermaid source without rendering. /xz-planning:xz-mmdc N 描述"
 disable-model-invocation: true
 argument-hint: "<序号> <中文描述/流程需求>"
 ---
@@ -16,7 +16,7 @@ argument-hint: "<序号> <中文描述/流程需求>"
 ## 强制规则
 
 - 只生成一个 Mermaid `flowchart` 流程图；不要生成 sequenceDiagram、classDiagram、stateDiagram、gantt、pie、mindmap、ER 图或其它 Mermaid 图类型。
-- 用户用 `/xz-mmdc 1 aaa 流程` 这类格式调用时，第一个参数 `1` 必须当作输出序号，不要把它当作流程内容。
+- 用户用 `/xz-planning:xz-mmdc 1 aaa 流程` 这类格式调用时，第一个参数 `1` 必须当作输出序号，不要把它当作流程内容。
 - 用户没有显式指定输出路径时，必须由 `make-output-path.sh` 在当前工作目录创建 `.xz_planning/mmdc-output/<序号>.<中文描述>/`，目录名整体最多 30 个 Unicode 字符；目录内文件名固定为 `<序号>-mmdc.mmd`、`<序号>-mmdc.svg` 和 `<序号>-process.md`，例如 `.xz_planning/mmdc-output/1.aaa流程/1-mmdc.mmd`。
 - 序号不能重复；如果路径生成脚本提示“序号已存在，请使用下一个序号”，必须停止本次生成，并把脚本提示的下一个可用序号告诉用户，不要覆盖旧图。
 - 不要只回复 Mermaid 源码；必须把 `.mmd` 文件落盘，使用 `mmdc` 渲染出 `.svg`，并写出同级的 `<序号>-process.md` 关键链路说明文档。
@@ -117,11 +117,11 @@ go:room_robot_num:%d
 
 ## 参数和命名规则
 
-- 触发词是 `/xz-mmdc`；用户写 `/xz-mmdc 1 aaa 流程` 时，`1` 是序号，`aaa 流程` 是描述。
+- 触发词是 `/xz-planning:xz-mmdc`；用户写 `/xz-planning:xz-mmdc 1 aaa 流程` 时，`1` 是序号，`aaa 流程` 是描述。
 - 默认输出目录格式：`.xz_planning/mmdc-output/<序号>.<中文描述>/`。
 - 默认输出文件格式：`<序号>-mmdc.mmd`、`<序号>-mmdc.svg` 和 `<序号>-process.md`。文件名不带中文描述，中文描述只体现在目录名里。
 - 目录名整体最多 30 个 Unicode 字符，包含序号和点号；中文描述过长时由 `make-output-path.sh` 自动截断。
-- 描述中的空格和文件名不安全字符会被清理，例如 `/xz-mmdc 1 aaa 流程` 会生成 `.xz_planning/mmdc-output/1.aaa流程/` 下的三个文件。
+- 描述中的空格和文件名不安全字符会被清理，例如 `/xz-planning:xz-mmdc 1 aaa 流程` 会生成 `.xz_planning/mmdc-output/1.aaa流程/` 下的三个文件。
 - 如果 `.xz_planning/mmdc-output` 中已存在同序号目录，`make-output-path.sh` 会报错并提示下一个可用序号；此时必须停止生成，让用户改用提示的序号。
 - 路径脚本会在目录内写入隐藏文件 `.mmdc-seq` 用于稳定识别序号，不要删除它。
 

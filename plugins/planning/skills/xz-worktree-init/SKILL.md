@@ -1,13 +1,13 @@
 ---
 name: xz-worktree-init
-description: 初始化或修改当前项目的 Git worktree 配置——基础分支、存放目录、合并策略、以及要复刻到新工作区的忽略文件。/xz-worktree-init [基础分支]
+description: 初始化或修改当前项目的 Git worktree 配置——基础分支、存放目录、合并策略、以及要复刻到新工作区的忽略文件。/xz-planning:xz-worktree-init [基础分支]
 disable-model-invocation: true
 argument-hint: "[基础分支]"
 ---
 
 # XZ Worktree Init - 配置并行工作区
 
-给当前项目写 `.xz_planning/worktree/setting.json`，供 `/xz-worktree` 建工作区时使用。
+给当前项目写 `.xz_planning/worktree/setting.json`，供 `/xz-planning:xz-worktree` 建工作区时使用。
 
 **可重复执行：** 已有配置时进入修改模式，展示当前值、只改用户点名的项，其余原样保留。
 
@@ -142,7 +142,7 @@ XZ Worktree 配置完成 → .xz_planning/worktree/setting.json
   复刻         .env (copy)、.xz_planning (copy)、node_modules (link)
   创建后执行   npm install
 
-下一步: /xz-worktree <名称> 建一个并行工作区
+下一步: /xz-planning:xz-worktree <名称> 建一个并行工作区
 ```
 
 修改模式下额外标出改了哪几项。

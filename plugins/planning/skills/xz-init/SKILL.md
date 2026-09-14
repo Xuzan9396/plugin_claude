@@ -1,6 +1,6 @@
 ---
 name: xz-init
-description: 初始化或更新当前项目的 .xz_planning 目录结构和项目快照。/xz-init
+description: 初始化或更新当前项目的 .xz_planning 目录结构和项目快照。/xz-planning:xz-init
 disable-model-invocation: true
 argument-hint: ""
 ---
@@ -147,7 +147,7 @@ date "+%Y-%m-%d %H:%M:%S"
   ├── phases/         # 活跃版本目录
   └── archive/        # 归档目录
 
-现在可以使用 /xz-plan N 需求描述 创建第一个版本计划。
+现在可以使用 /xz-planning:xz-plan N 需求描述 创建第一个版本计划。
 ```
 
 **重复执行：**

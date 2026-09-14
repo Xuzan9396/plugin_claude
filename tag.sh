@@ -77,6 +77,18 @@ check_dialect() {
   check_no_pattern "$PI_SKILLS" '(^|[^[:alnum:].])/xz-|\$xz-|\$mmdc|\$ARGUMENTS|\$chrome|chrome@openai-bundled|AskUserQuestion|claude-in-chrome|mcp__' \
     "pi 端混入了 claude/codex 语法"
 
+  # Claude 端走 marketplace 插件分发，skill 真名带插件前缀（xz-planning:xz-exec）。
+  # 写成裸 `/xz-exec` 用户敲了匹配不到命令，又因为 disable-model-invocation
+  # 模型也看不到该 skill，只能答非所问——踩过一次，所以闸门盯死。
+  local bare
+  # 前导字符限行首/空白/标点，避免误伤 `skill/xz-cdp-cli/examples/x.js` 这类路径
+  bare=$(grep -rnE '(^|[^[:alnum:].])/xz-[a-z]' "$CLAUDE_SKILLS" "$REPO_ROOT/plugins/planning/agents" \
+           "${SCAN_INCLUDES[@]}" 2>/dev/null | grep -v '/xz-planning:' | head -5 || true)
+  if [ -n "$bare" ]; then
+    gate_err "claude 端出现不带 xz-planning: 前缀的调用式（用户敲了匹配不到）:"
+    echo "$bare" | sed "s|$MYAI_ROOT/||; s/^/       /"
+  fi
+
   # pi 端凡是用到参数占位符的，必须有参数约定说明块
   local missing=""
   for f in "$PI_SKILLS"/xz-*/SKILL.md; do

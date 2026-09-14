@@ -1,6 +1,6 @@
 ---
 name: xz-eli5
-description: 把任何话题、代码、概念、报错按指定听众的理解水平讲明白。当用户说「讲人话」「说人话」「掰开揉碎讲讲」「ELI5」「当我是五岁小孩」「解释给我妈/我老婆/我领导听」「给非技术的人讲讲」「简单点说」，或者要求把某个东西讲给某类人听（比如「讲给产品经理听」「怎么跟我爸解释」「给刚入行的讲讲」）时使用。哪怕只匹配上一半，比如「跟我媳妇儿说说」「跟老板汇报一下」，也要触发。Also trigger on "explain like I am", "ELI5", "dumb it down", "explain this to my ...". /xz-eli5 要解释的东西 [讲给谁听]
+description: 把任何话题、代码、概念、报错按指定听众的理解水平讲明白。当用户说「讲人话」「说人话」「掰开揉碎讲讲」「ELI5」「当我是五岁小孩」「解释给我妈/我老婆/我领导听」「给非技术的人讲讲」「简单点说」，或者要求把某个东西讲给某类人听（比如「讲给产品经理听」「怎么跟我爸解释」「给刚入行的讲讲」）时使用。哪怕只匹配上一半，比如「跟我媳妇儿说说」「跟老板汇报一下」，也要触发。Also trigger on "explain like I am", "ELI5", "dumb it down", "explain this to my ...". /xz-planning:xz-eli5 要解释的东西 [讲给谁听]
 disable-model-invocation: true
 argument-hint: "[要解释的东西] [讲给谁听]"
 ---

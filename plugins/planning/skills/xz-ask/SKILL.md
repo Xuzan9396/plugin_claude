@@ -1,13 +1,13 @@
 ---
 name: xz-ask
-description: 只回答问题、绝不碰代码的纯问答模式。当用户只想弄明白一件事——问「这是什么」「为什么这样」「怎么做」「在哪儿」「能不能」，或者明确说「先别改」「只回答我」「不要动代码」「就问一下」时使用。答案保持简洁。/xz-ask 你的问题
+description: 只回答问题、绝不碰代码的纯问答模式。当用户只想弄明白一件事——问「这是什么」「为什么这样」「怎么做」「在哪儿」「能不能」，或者明确说「先别改」「只回答我」「不要动代码」「就问一下」时使用。答案保持简洁。/xz-planning:xz-ask 你的问题
 disable-model-invocation: true
 argument-hint: "[你的问题]"
 ---
 
 # XZ Ask - 只回答，不动手
 
-参数 `$ARGUMENTS`：用户的问题。为空 → 停止并提示 `用法: /xz-ask 你的问题`。
+参数 `$ARGUMENTS`：用户的问题。为空 → 停止并提示 `用法: /xz-planning:xz-ask 你的问题`。
 
 ## 铁律：全程只读
 
@@ -21,7 +21,7 @@ argument-hint: "[你的问题]"
 
 允许：`Read`、`Grep`、`Glob`，以及**只读**的 Bash（`git log`、`git diff`、`git status`、`ls`、`cat`、`grep`、`find`）。
 
-**发现 bug 也只是说出来，不许顺手修。** 用户在本次调用中改口说「那你改一下」→ 停下，告诉他改代码请用 `/xz-exec` 或 `/xz-debug`，本 skill 不改。
+**发现 bug 也只是说出来，不许顺手修。** 用户在本次调用中改口说「那你改一下」→ 停下，告诉他改代码请用 `/xz-planning:xz-exec` 或 `/xz-planning:xz-debug`，本 skill 不改。
 
 ## 怎么答
 
